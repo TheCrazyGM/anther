@@ -1,0 +1,295 @@
+package account
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/thecrazygm/nectar-go/client"
+	"github.com/thecrazygm/nectar-go/transaction"
+)
+
+const (
+	VotingManaRegenerationSeconds = 5 * 24 * 60 * 60 // 5 days in seconds
+	RCManaRegenerationSeconds     = 5 * 24 * 60 * 60 // 5 days in seconds
+)
+
+// Account represents a Hive account.
+type Account struct {
+	Name    string
+	API     *client.Client
+	Data    map[string]interface{}
+	rcInfo  map[string]interface{}
+	repInfo *int64
+}
+
+// NewAccount creates a new Account.
+func NewAccount(name string, api *client.Client) *Account {
+	return &Account{
+		Name: name,
+		API:  api,
+		Data: make(map[string]interface{}),
+	}
+}
+
+// Refresh fetches the account data from the blockchain.
+func (a *Account) Refresh() error {
+	if a.API == nil {
+		return fmt.Errorf("API not configured")
+	}
+
+	resp, err := a.API.Call("condenser_api", "get_accounts", [][]string{{a.Name}})
+	if err != nil {
+		return err
+	}
+
+	accounts, ok := resp.([]interface{})
+	if !ok || len(accounts) == 0 {
+		return fmt.Errorf("account '%s' not found", a.Name)
+	}
+
+	a.Data, _ = accounts[0].(map[string]interface{})
+	return nil
+}
+
+// Follow creates a follow transaction for another account.
+func (a *Account) Follow(accountToFollow string) (*transaction.Transaction, error) {
+	if a.API == nil {
+		return nil, fmt.Errorf("API not configured")
+	}
+
+	tx := transaction.NewTransaction(a.API)
+	follow := &transaction.Follow{
+		Follower:  a.Name,
+		Following: accountToFollow,
+		What:      []string{"blog"},
+	}
+	tx.AppendOp(follow)
+	return tx, nil
+}
+
+// Unfollow creates an unfollow transaction for an account.
+func (a *Account) Unfollow(accountToUnfollow string) (*transaction.Transaction, error) {
+	if a.API == nil {
+		return nil, fmt.Errorf("API not configured")
+	}
+
+	tx := transaction.NewTransaction(a.API)
+	follow := &transaction.Follow{
+		Follower:  a.Name,
+		Following: accountToUnfollow,
+		What:      []string{}, // Empty list means unfollow
+	}
+	tx.AppendOp(follow)
+	return tx, nil
+}
+
+// Ignore creates an ignore/mute transaction for another account.
+func (a *Account) Ignore(accountToIgnore string) (*transaction.Transaction, error) {
+	if a.API == nil {
+		return nil, fmt.Errorf("API not configured")
+	}
+
+	tx := transaction.NewTransaction(a.API)
+	follow := &transaction.Follow{
+		Follower:  a.Name,
+		Following: accountToIgnore,
+		What:      []string{"ignore"},
+	}
+	tx.AppendOp(follow)
+	return tx, nil
+}
+
+// Unignore creates an unignore transaction (same as unfollow).
+func (a *Account) Unignore(accountToUnignore string) (*transaction.Transaction, error) {
+	return a.Unfollow(accountToUnignore)
+}
+
+// GetVotingPower calculates the current voting power percentage.
+func (a *Account) GetVotingPower(refresh bool) (float64, error) {
+	if refresh || len(a.Data) == 0 {
+		if a.API == nil {
+			return 0, fmt.Errorf("API not configured")
+		}
+		if err := a.Refresh(); err != nil {
+			return 0, err
+		}
+	}
+
+	// Get manabar data
+	manabar, ok := a.Data["voting_manabar"].(map[string]interface{})
+	if !ok {
+		manabar = make(map[string]interface{})
+	}
+
+	var currentMana float64
+	var lastUpdateTime time.Time
+	var useManabarTime bool = false
+
+	// Priority: use voting_power from account data
+	// The manabar.current_mana is in raw format and needs to be calculated differently
+	// For now, use voting_power which is already a value out of 10000
+	if votingPowerVal, ok := a.Data["voting_power"].(float64); ok {
+		currentMana = votingPowerVal
+	} else if currentManaVal, ok := manabar["current_mana"].(float64); ok {
+		// Fallback to manabar current_mana if voting_power not available
+		// This needs special handling as it's a raw value
+		currentMana = currentManaVal
+	} else {
+		currentMana = 0
+	}
+
+	// Try to get last_update_time - prefer manabar timestamp for mana regeneration calculation
+	if lastUpdateTimeVal, ok := manabar["last_update_time"].(float64); ok && lastUpdateTimeVal > 0 {
+		lastUpdateTime = time.Unix(int64(lastUpdateTimeVal), 0)
+		useManabarTime = true
+	} else if lastVoteTimeStr, ok := a.Data["last_vote_time"].(string); ok {
+		if t, err := time.Parse("2006-01-02T15:04:05", lastVoteTimeStr); err == nil {
+			lastUpdateTime = t
+		}
+	}
+
+	// max_mana defaults to 10000
+	var maxMana float64 = 10000
+	if maxManaVal, ok := manabar["max_mana"].(float64); ok {
+		maxMana = maxManaVal
+	}
+
+	// Calculate mana regeneration if we have a valid timestamp
+	if !lastUpdateTime.IsZero() && useManabarTime {
+		diff := time.Since(lastUpdateTime).Seconds()
+		regenerated := diff * maxMana / float64(VotingManaRegenerationSeconds)
+		currentMana = minFloat64(maxMana, currentMana+regenerated)
+	}
+
+	if maxMana <= 0 {
+		return 0.0, nil
+	}
+
+	return (currentMana / maxMana) * 100, nil
+}
+
+// VotingPower returns the current voting power percentage.
+func (a *Account) VotingPower() (float64, error) {
+	return a.GetVotingPower(false)
+}
+
+// VP returns the current voting power percentage (shorthand).
+func (a *Account) VP() (float64, error) {
+	return a.GetVotingPower(false)
+}
+
+// GetRCInfo fetches and caches Resource Credit information.
+func (a *Account) GetRCInfo(refresh bool) (map[string]interface{}, error) {
+	if a.rcInfo != nil && !refresh {
+		return a.rcInfo, nil
+	}
+
+	if a.API == nil {
+		return nil, fmt.Errorf("API not configured")
+	}
+
+	resp, err := a.API.Call("rc_api", "find_rc_accounts", map[string]interface{}{"accounts": []string{a.Name}})
+	if err != nil {
+		return nil, err
+	}
+
+	var rcAccounts []interface{}
+	if respMap, ok := resp.(map[string]interface{}); ok {
+		if accounts, ok := respMap["rc_accounts"].([]interface{}); ok {
+			rcAccounts = accounts
+		} else if accounts, ok := respMap["result"].([]interface{}); ok {
+			rcAccounts = accounts
+		}
+	} else if accounts, ok := resp.([]interface{}); ok {
+		rcAccounts = accounts
+	}
+
+	if len(rcAccounts) == 0 {
+		return nil, fmt.Errorf("no RC data found for account %s", a.Name)
+	}
+
+	rcAccount, ok := rcAccounts[0].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid RC account data")
+	}
+
+	manabar, _ := rcAccount["rc_manabar"].(map[string]interface{})
+	if manabar == nil {
+		manabar = make(map[string]interface{})
+	}
+
+	maxRC := int64(0)
+	if maxVal, ok := rcAccount["max_rc"].(float64); ok {
+		maxRC = int64(maxVal)
+	}
+
+	lastMana := int64(0)
+	if lastVal, ok := manabar["current_mana"].(float64); ok {
+		lastMana = int64(lastVal)
+	}
+
+	var lastUpdateTime time.Time
+	if lastUpdateVal, ok := manabar["last_update_time"].(float64); ok {
+		lastUpdateTime = time.Unix(int64(lastUpdateVal), 0)
+	}
+
+	currentMana := lastMana
+	if !lastUpdateTime.IsZero() && maxRC > 0 {
+		diff := time.Since(lastUpdateTime).Seconds()
+		regenerated := diff * float64(maxRC) / float64(RCManaRegenerationSeconds)
+		currentMana = minInt64(maxRC, lastMana+int64(regenerated))
+	}
+
+	lastPercent := 0.0
+	if maxRC > 0 {
+		lastPercent = (float64(lastMana) / float64(maxRC)) * 100
+	}
+
+	currentPercent := 0.0
+	if maxRC > 0 {
+		currentPercent = (float64(currentMana) / float64(maxRC)) * 100
+	}
+
+	info := map[string]interface{}{
+		"last_mana":        lastMana,
+		"current_mana":     currentMana,
+		"max_mana":         maxRC,
+		"last_update_time": lastUpdateTime,
+		"last_percent":     lastPercent,
+		"current_percent":  currentPercent,
+	}
+
+	a.rcInfo = info
+	return info, nil
+}
+
+// RCInfo returns the RC info property.
+func (a *Account) RCInfo() (map[string]interface{}, error) {
+	return a.GetRCInfo(false)
+}
+
+// RC returns the current RC percentage.
+func (a *Account) RC() (float64, error) {
+	info, err := a.GetRCInfo(false)
+	if err != nil || info == nil {
+		return 0, err
+	}
+	if currentPercent, ok := info["current_percent"].(float64); ok {
+		return currentPercent, nil
+	}
+	return 0, nil
+}
+
+func minInt64(a, b int64) int64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func minFloat64(a, b float64) float64 {
+	if a < b {
+		return a
+	}
+	return b
+}
