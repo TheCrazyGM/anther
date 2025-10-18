@@ -13,12 +13,14 @@
 An ECDSA signature consists of two values: `r` and `s`. For security and consensus reasons, HIVE (and Bitcoin) require signatures where `s ≤ N/2` to ensure determinism.
 
 ### Canonical Formula
+
 ```
 If s > N/2, then:
     s = N - s
 ```
 
 This transformation:
+
 - Doesn't change the signature's validity
 - Ensures deterministic, non-malleability
 - Is required by the blockchain consensus rules
@@ -33,8 +35,10 @@ N/2             = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B
 ## Implementation Details
 
 ### Signature Format
-The go-ethereum `crypto.Sign()` returns:
-- **Byte 0**: Recovery ID (0-3), adjusted to 27+4+recoveryID
+
+The Decred `ecdsa.SignCompact()` returns:
+
+- **Byte 0**: Recovery info (27 + recovery_id + 4) = 31 to 34 range
 - **Bytes 1-32**: r value (256 bits)
 - **Bytes 33-64**: s value (256 bits)
 - **Total**: 65 bytes
@@ -43,12 +47,14 @@ The go-ethereum `crypto.Sign()` returns:
 
 ```go
 // Extract s value from signature
-sBytes := sig[33:65]
+sBytes := compactSig[33:65]
 s := new(big.Int).SetBytes(sBytes)
 
 // Check if s > N/2
 nDiv2 := new(big.Int)
 nDiv2.SetString("7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0", 16)
+
+recoveryID := int(compactSig[0]) - 31
 
 if s.Cmp(nDiv2) > 0 {
     // Make it canonical: s = N - s
@@ -56,26 +62,33 @@ if s.Cmp(nDiv2) > 0 {
     nValue.SetString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16)
     s = new(big.Int).Sub(nValue, s)
 
-    // Reconstruct signature with canonical s
+    // Reconstruct s as 32 bytes
     sBytes = s.Bytes()
-    // Pad to 32 bytes if necessary
     if len(sBytes) < 32 {
         sBytes = append(make([]byte, 32-len(sBytes)), sBytes...)
     }
 
-    // Update signature: recovery_byte + r + canonical_s
-    sig = append([]byte{sig[0]}, append(rBytes, sBytes...)...)
+    // Important: Adjust recovery ID when s is flipped
+    recoveryID = recoveryID ^ 1  // Flip bit 0 (y-parity)
+
+    // Rebuild signature: [27 + 4 + recovery_id][r][canonical_s]
+    sig = append([]byte{byte(27 + 4 + recoveryID)}, append(rBytes, sBytes...)...)
+} else {
+    // Already canonical, use as-is
+    sig = compactSig
 }
 ```
 
 ## Why This Matters
 
 Without canonical signatures:
+
 - ❌ Blockchain rejects the transaction
 - ❌ Error: "is_canonical(c): signature is not canonical"
 - ❌ Transfer fails silently
 
 With canonical signatures:
+
 - ✅ Signature is valid per consensus rules
 - ✅ Transaction is accepted
 - ✅ Transfer succeeds
@@ -96,14 +109,17 @@ With canonical signatures:
 ## Code Example
 
 ```go
-// After signing with go-ethereum
-sig, err := crypto.Sign(digest[:], privKey)
-if err != nil {
-    return err
-}
+// Sign with Decred's secp256k1
+privKeySEC := secp256k1.PrivKeyFromBytes(privKeyBytes)
+compactSig := ecdsa.SignCompact(privKeySEC, digest[:], true)
 
-// Make signature canonical
-s := new(big.Int).SetBytes(sig[33:65])
+// Extract components
+recoveryID := int(compactSig[0]) - 31
+rBytes := compactSig[1:33]
+sBytes := compactSig[33:65]
+
+// Make signature canonical if needed
+s := new(big.Int).SetBytes(sBytes)
 nDiv2 := new(big.Int)
 nDiv2.SetString("7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0", 16)
 
@@ -112,32 +128,39 @@ if s.Cmp(nDiv2) > 0 {
     nValue.SetString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16)
     s = new(big.Int).Sub(nValue, s)
 
-    sBytes := s.Bytes()
+    sBytes = s.Bytes()
     if len(sBytes) < 32 {
         sBytes = append(make([]byte, 32-len(sBytes)), sBytes...)
     }
 
-    sig = append([]byte{sig[0]}, append(sig[1:33], sBytes...)...)
+    // Adjust recovery ID when s is flipped
+    recoveryID = recoveryID ^ 1
 }
 
-// Now sig is canonical and will be accepted by HIVE
-tx.Signatures = append(tx.Signatures, hex.EncodeToString(sig))
+// Build final canonical signature
+finalSig := append([]byte{byte(27 + 4 + recoveryID)}, append(rBytes, sBytes...)...)
+
+// Now finalSig is canonical and will be accepted by HIVE
+tx.Signatures = append(tx.Signatures, hex.EncodeToString(finalSig))
 ```
 
 ## Testing
 
 The fix has been integrated into the transaction signing flow:
+
 - Automatic canonical check in `Sign()` method
 - Applied before adding signature to transaction
 - Transparent to user
 
 Test with:
+
 ```bash
 export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ./examples/transfer
 ```
 
 If successful:
+
 - ✅ Signature is canonical
 - ✅ Transaction broadcasts
 - ✅ Error resolved!

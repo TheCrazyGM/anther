@@ -15,6 +15,7 @@ This is a long-standing compatibility issue with HIVE transactions.
 ## How It Works
 
 ### User Perspective (What You See)
+
 ```go
 transfer := &transaction.Transfer{
     From:   "thecrazygm",
@@ -25,7 +26,9 @@ transfer := &transaction.Transfer{
 ```
 
 ### Wire Format (What Gets Signed)
+
 When the transaction is serialized for signing:
+
 - `HIVE` → `STEEM` (in the wire format)
 - `HBD` → `SBD` (in the wire format)
 
@@ -34,6 +37,7 @@ The conversion is automatic and transparent.
 ## Technical Implementation
 
 ### Wire Symbol Aliases
+
 ```go
 var WireSymbolAliases = map[string]string{
 	"HIVE": "STEEM",
@@ -42,6 +46,7 @@ var WireSymbolAliases = map[string]string{
 ```
 
 ### Binary Serialization
+
 The `Amount.Bytes()` method handles the conversion:
 
 ```
@@ -61,6 +66,7 @@ Wire Format:
 ```
 
 ### Hex Breakdown
+
 - Amount bytes: `01 00 00 00 00 00 00 00` = 1 (0.001 HIVE in satoshis)
 - Precision: `03` = 3 decimal places
 - Symbol: `53 54 45 45 4d 00 00` = "STEEM" (ASCII padded to 7 bytes)
@@ -78,6 +84,7 @@ VESTS  → VESTS   (precision: 6)   no conversion needed
 ## Example: Transaction Signing Flow
 
 ### Step 1: Create Transfer
+
 ```go
 transfer := &transaction.Transfer{
     From:   "sender",
@@ -88,13 +95,16 @@ transfer := &transaction.Transfer{
 ```
 
 ### Step 2: Add to Transaction
+
 ```go
 tx := transaction.NewTransaction(api)
 tx.AppendOp(transfer)
 ```
 
 ### Step 3: Serialize for Signing
+
 When `tx.Sign()` is called:
+
 1. Transaction is converted to binary
 2. `transfer.Bytes()` is called
 3. Amount is parsed: 0.001 HIVE
@@ -103,6 +113,7 @@ When `tx.Sign()` is called:
 6. Signature is generated over the bytes
 
 ### Step 4: Broadcast
+
 ```go
 result, err := tx.Broadcast()
 ```
@@ -112,11 +123,13 @@ The complete transaction with signature is sent to the network.
 ## Why This Matters
 
 Without this conversion:
+
 - Signatures wouldn't match blockchain expectations
 - Transaction signing would fail silently
 - Transfers would be rejected by the network
 
 With this conversion:
+
 - Signatures are valid according to HIVE blockchain rules
 - Transactions are accepted by the network
 - Everything works seamlessly for the user
@@ -140,14 +153,18 @@ The library handles the conversion transparently during signing.
 ## Implementation Details
 
 ### Types Package
+
 The `Amount` type in `types/types.go`:
+
 - Parses user-friendly amounts ("0.001 HIVE")
 - Converts to binary with wire symbols
 - Handles precision (decimal places)
 - Pads symbols to 7 bytes in wire format
 
 ### Transaction Package
+
 The `Transfer` type in `transaction/transaction.go`:
+
 - Uses `Amount.Bytes()` for serialization
 - Calls wire format conversion automatically
 - No special handling needed by user
@@ -204,6 +221,7 @@ If the signatures match blockchain expectations, the transaction will be accepte
 ## Compatibility
 
 This implementation matches:
+
 - ✓ Python nectarlite library behavior
 - ✓ Hive blockchain wire protocol
 - ✓ Legacy STEEM transaction format

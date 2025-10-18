@@ -56,13 +56,16 @@ func main() {
 ## Transaction Signing Process
 
 ### Step 1: Transaction Creation
+
 ```go
 tx := transaction.NewTransaction(api)
 ```
+
 - Creates an empty transaction with reference to the API
 - Initializes empty operations and signatures lists
 
 ### Step 2: Add Operations
+
 ```go
 transfer := &transaction.Transfer{
     From:   "thecrazygm",
@@ -72,11 +75,14 @@ transfer := &transaction.Transfer{
 }
 tx.AppendOp(transfer)
 ```
+
 - Transfer objects contain the operation details
 - Operations implement the `Operation` interface with `ToDict()` method
 
 ### Step 3: Set Block Parameters
+
 When signing, the transaction automatically:
+
 - Fetches the latest block number from the network
 - Calculates reference block number and prefix
 - Sets expiration time (30 seconds from block time)
@@ -88,7 +94,9 @@ props, err := api.GetDynamicGlobalProperties()
 ```
 
 ### Step 4: Construct Transaction Dictionary
+
 The transaction is converted to a dictionary format:
+
 ```go
 {
   "ref_block_num": 1234,
@@ -111,6 +119,7 @@ The transaction is converted to a dictionary format:
 ```
 
 ### Step 5: Get Transaction Hex
+
 ```go
 // API call to get the serialized hex
 txHex = api.Call("condenser_api", "get_transaction_hex", [tx_dict])
@@ -118,6 +127,7 @@ txHex = api.Call("condenser_api", "get_transaction_hex", [tx_dict])
 ```
 
 ### Step 6: Sign Digest
+
 ```go
 // Prepare message: chain_id + transaction_hex
 message = bytes.fromhex(HIVE_CHAIN_ID + txHex[:-2])
@@ -128,23 +138,28 @@ signature = sign(digest, private_key)
 ```
 
 ### Step 7: Add Signature to Transaction
+
 ```go
 tx.Signatures = append(tx.Signatures, signature_hex)
 ```
 
 ### Step 8: Broadcast
+
 ```go
 result, err := tx.Broadcast()
 ```
+
 - Sends the signed transaction to the network
 - Returns transaction ID or error
 
 ## Common Issues and Solutions
 
 ### Issue 1: "Invalid WIF Format"
+
 **Problem**: The private key provided is not in valid WIF format
 
 **Solution**:
+
 - Ensure the key starts with "5"
 - Verify the key is not corrupted
 - Check it's not accidentally truncated
@@ -154,15 +169,18 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 ### Issue 2: "Error calling get_transaction_hex"
+
 **Problem**: The `get_transaction_hex` API call failed
 
 **Possible Causes**:
+
 - Node doesn't support this API method
 - Node is in maintenance
 - Network connection issue
 - Invalid transaction data
 
 **Solution**:
+
 ```go
 // Retry with different nodes
 nodes := []string{
@@ -174,9 +192,11 @@ api := client.NewClient(nodes, 30)
 ```
 
 ### Issue 3: "Transaction is not signed"
+
 **Problem**: Attempting to broadcast without signatures
 
 **Solution**:
+
 ```go
 // Ensure you call wallet.Sign() before Broadcast()
 if err := w.Sign(tx, account, role); err != nil {
@@ -187,14 +207,17 @@ result, err := tx.Broadcast()
 ```
 
 ### Issue 4: "Unexpected response type"
+
 **Problem**: API returned unexpected data type
 
 **Possible Causes**:
+
 - API endpoint changed
 - Network returned error wrapped in JSON
 - Response parsing issue
 
 **Solution**:
+
 - Check error message for details
 - Verify you're using correct API endpoint
 - Try alternate nodes
@@ -202,12 +225,14 @@ result, err := tx.Broadcast()
 ## Transfer Amount Format
 
 Amounts must be strings with denomination:
+
 - `"0.001 HIVE"` - 1 HIVE satoshi
 - `"1.000 HIVE"` - 1 whole HIVE
 - `"100.000 HIVE"` - 100 HIVE
 - `"0.001 HBD"` - HBD transfers
 
 Memo:
+
 - Maximum 256 characters
 - Optional (can be empty string)
 - Appears on blockchain for both sender and receiver
@@ -217,6 +242,7 @@ Memo:
 ⚠️ **NEVER hardcode private keys!**
 
 ✅ Best Practices:
+
 ```bash
 # Use environment variables
 export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -230,11 +256,13 @@ source ~/.hive/keys.sh
 ## Running the Transfer Example
 
 ### Prerequisites
+
 1. Valid Hive account name
 2. Active key in WIF format
 3. Sufficient HIVE balance for transfer + resource credits
 
 ### Execution
+
 ```bash
 # Build the example
 go build -o examples/transfer ./examples
@@ -247,6 +275,7 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 ### Expected Output
+
 ```
 === Nectarlite Go Library - Transfer Example ===
 
@@ -302,6 +331,7 @@ After successful broadcast, verify the transaction:
 ## Transaction Fees
 
 Each transfer costs:
+
 - **RC (Resource Credits)**: ~50-100 RC depending on memo length
 - **No direct HIVE fee**: Paid via resource credits that regenerate
 - **Mana regenerates**: Over 5 days (432000 seconds)

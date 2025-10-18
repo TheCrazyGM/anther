@@ -9,6 +9,7 @@ All features implemented and tested. Ready for production use on the HIVE blockc
 ## Features
 
 ### Core Functionality
+
 - ✅ Account management and queries
 - ✅ Transaction creation and signing
 - ✅ Multi-operation transactions
@@ -17,6 +18,7 @@ All features implemented and tested. Ready for production use on the HIVE blockc
 - ✅ Multi-node client with failover
 
 ### Signing System
+
 - ✅ ECDSA signature generation
 - ✅ Canonical signature format (s ≤ N/2)
 - ✅ Recovery ID bit adjustment
@@ -24,6 +26,7 @@ All features implemented and tested. Ready for production use on the HIVE blockc
 - ✅ Proper transaction hashing with chain ID
 
 ### Supported Operations
+
 - ✅ Transfer (with amount and memo)
 - ✅ Vote (with weight)
 - ✅ Comment (with metadata)
@@ -31,6 +34,7 @@ All features implemented and tested. Ready for production use on the HIVE blockc
 - ✅ Follow (via custom JSON)
 
 ### Account Features
+
 - ✅ Account data fetching
 - ✅ Voting power calculation
 - ✅ Mana regeneration tracking
@@ -162,7 +166,13 @@ Amount: "1.000 HIVE"     // User-friendly again
 
 This conversion is transparent and automatic during transaction signing.
 
-## Key Insight: Recovery ID Adjustment
+## Key Insight: Recovery ID Adjustment with Decred secp256k1
+
+The implementation uses **Decred's secp256k1 library** which provides `SignCompact()` that:
+
+1. Automatically embeds the recovery ID in the first byte
+2. Returns compact signatures ready for HIVE blockchain
+3. Works seamlessly with canonicalization
 
 When canonicalizing an ECDSA signature by transforming `s → N - s`, the y-parity of the elliptic curve point changes. Therefore, we must flip recovery ID bit 0:
 
@@ -275,16 +285,19 @@ err := w.Sign(tx, "username", "active")
 ## Testing
 
 ### Run account query
+
 ```bash
 go run main.go
 ```
 
 ### Build transfer example
+
 ```bash
 go build -o examples/transfer ./examples
 ```
 
 ### Test with transfer
+
 ```bash
 export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ./examples/transfer
@@ -300,13 +313,17 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ## Dependencies
 
 ```
-github.com/btcsuite/btcd/btcutil   v1.x    # WIF key handling
-github.com/ethereum/go-ethereum    v1.x    # ECDSA operations
+github.com/btcsuite/btcd/btcutil                        v1.x    # WIF key handling
+github.com/decred/dcrd/dcrec/secp256k1/v4                       # ECDSA signing (SignCompact)
+github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa                 # Signature operations
 ```
+
+**Note**: Uses Decred's secp256k1 library (not go-ethereum) for proper compact signature generation with embedded recovery IDs.
 
 ## Documentation
 
 See detailed documentation in:
+
 - `IMPLEMENTATION_SUMMARY.md` - Complete feature overview
 - `SIGNING_IMPLEMENTATION.md` - Step-by-step signing process
 - `RECOVERY_ID_DEEP_DIVE.md` - Recovery ID mathematics
@@ -316,20 +333,24 @@ See detailed documentation in:
 ## Troubleshooting
 
 ### "signature is not canonical"
+
 - Cause: s > N/2 not being canonicalized
 - Solution: Ensure s canonicalization is enabled (it is by default)
 
 ### "unable to reconstruct public key from signature"
+
 - Cause: Recovery ID not adjusted after s flip
 - Solution: Check recovery ID bit flip logic (implemented)
 
 ### "Bad Cast: Invalid cast from null_type to Array"
+
 - Cause: Node doesn't support get_transaction_hex
 - Solution: Try different node (e.g., api.openhive.network)
 
 ## Contributing
 
 This implementation closely matches the Python reference. Changes should:
+
 1. Maintain compatibility with Python nectarlite
 2. Include proper error handling
 3. Have comprehensive documentation
@@ -342,6 +363,7 @@ See LICENSE file for details.
 ## Support
 
 For issues and questions:
+
 - Check the documentation files
 - Review the example code
 - Consult the Python reference implementation

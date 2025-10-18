@@ -7,26 +7,49 @@ This document describes the complete transaction signing process for the HIVE bl
 ## Signing Flow
 
 ### Phase 1: Transaction Preparation
+
 1. Create transaction with operations (transfer, vote, comment, etc.)
 2. Operations are converted to wire format with STEEM/SBD conversion
 3. Get transaction hex from the node via RPC
 
 ### Phase 2: Message Hashing
+
 1. Chain ID + transaction hex → concatenate
 2. SHA256 hash of the concatenated data
 3. This is the digest that will be signed
 
-### Phase 3: ECDSA Signing
+### Phase 3: ECDSA Signing with Decred secp256k1
+
 ```
-digest (SHA256) → ECDSA sign with private key → 65-byte signature
-  [recovery_byte][r: 32 bytes][s: 32 bytes]
+digest (SHA256) → ECDSA sign with Decred secp256k1 → 65-byte compact signature
+  [27 + recovery_id + 4][r: 32 bytes][s: 32 bytes]
 ```
 
-### Phase 4: S Canonicalization
+**Library Used**: `github.com/decred/dcrd/dcrec/secp256k1/v4`
+
+The Decred library's `SignCompact()` function:
+
+- Automatically embeds the recovery ID in the first byte
+- Returns properly formatted compact signatures
+- Works seamlessly with canonicalization
+
+### Phase 4: Recovery ID Extraction
+
+```go
+recoveryByte := compactSig[0]      // First byte from SignCompact
+recoveryID := int(recoveryByte) - 31  // Extract 0-3
+```
+
+**Recovery ID Format**: `27 + recovery_id + 4` = 31 to 34 range
+
+- **Bit 0**: Y-coordinate parity (0=even, 1=odd)
+- **Bit 1**: X-coordinate overflow (0=normal, 1=overflowed)
+
+### Phase 5: S Canonicalization
 
 HIVE requires canonical signatures where `s ≤ N/2` (where N is the secp256k1 curve order).
 
-```
+```go
 If s > N/2:
     s_canonical = N - s
 Else:
@@ -34,35 +57,39 @@ Else:
 ```
 
 This ensures:
+
 - Non-malleability of signatures
 - Deterministic signature format
 - Blockchain consensus compliance
 
-### Phase 5: Recovery ID Adjustment
+### Phase 6: Recovery ID Adjustment When S is Flipped
 
-When `s` is canonicalized, the recovery formula changes. We must adjust the recovery ID accordingly:
+When `s` is canonicalized from `s` to `N - s`, the elliptic curve mathematics change:
 
-**Recovery ID Encoding (0-3):**
-- **Bit 0 (recovery_id % 2)**: Y-coordinate parity (0=even, 1=odd)
-- **Bit 1 (recovery_id / 2)**: X-coordinate overflow (0=no overflow, 1=overflow)
+```go
+if s > N/2 {
+    s = N - s  // Canonicalize
+    recovery_id = recovery_id ^ 1  // Flip bit 0 (y-parity)
+}
+```
 
-**When s is flipped during canonicalization:**
-- The y-parity changes
-- Therefore, we **flip bit 0** of the recovery ID
-- `new_recovery_id = old_recovery_id ^ 1`
+**Why only bit 0 flips?**
 
-**When s is already canonical:**
-- Recovery ID remains unchanged
+- Canonicalizing s negates the y-coordinate of the curve point
+- This flips y-parity but doesn't affect x-coordinate
+- Therefore only bit 0 (y-parity) needs to flip
+- Bit 1 (x-overflow) remains unchanged
 
-### Phase 6: Final Signature
+### Phase 7: Final Signature
 
 ```
-Final Signature = [27 + 4 + recovery_id][r: 32 bytes][s: 32 bytes]
+Final Signature = [27 + 4 + recovery_id][r: 32 bytes][canonical_s: 32 bytes]
                 = [31-34][32 bytes][32 bytes]
                 = 65 bytes total
 ```
 
 Where:
+
 - **27**: Bitcoin's base recovery byte value
 - **4**: Compressed public key indicator
 - **recovery_id**: 0-3, adjusted if s was canonicalized
@@ -70,6 +97,7 @@ Where:
 ## Wire Format: STEEM/SBD Conversion
 
 ### User Perspective
+
 ```go
 transfer := &transaction.Transfer{
     From:   "alice",
@@ -80,6 +108,7 @@ transfer := &transaction.Transfer{
 ```
 
 ### Wire Format (for signing)
+
 - HIVE → STEEM (during binary serialization)
 - HBD → SBD (during binary serialization)
 - This conversion is automatic and transparent
@@ -91,60 +120,65 @@ transfer := &transaction.Transfer{
 ### File: transaction/transaction.go - Sign() method
 
 ```go
-// Step 1: Sign with private key
-sig, err := crypto.Sign(digest[:], privKey)
+// Step 1: Convert WIF to secp256k1 private key
+wifDecoded, err := btcutil.DecodeWIF(wif)
+if err != nil {
+    return err
+}
+privKeyBytes := wifDecoded.PrivKey.Serialize()
+privKeySEC := secp256k1.PrivKeyFromBytes(privKeyBytes)
 
-// Step 2: Extract components
-recoveryByteFromGo := sig[0]
-recoveryIDFromGo := int((recoveryByteFromGo - 27) % 4)  // Extract 0-3
-rBytes := sig[1:33]
-sBytes := sig[33:65]
+// Step 2: Sign with Decred's SignCompact (returns compact signature with embedded recovery ID)
+compactSig := ecdsa.SignCompact(privKeySEC, digest[:], true)  // true = compressed key
 
-// Step 3: Parse s value
+// Step 3: Extract components
+recoveryByte := compactSig[0]
+rBytes := compactSig[1:33]
+sBytes := compactSig[33:65]
+
+// Step 4: Extract recovery ID from recovery byte
+// Format: 27 + recovery_id + 4 (for compressed)
+recoveryID := int(recoveryByte) - 31
+
+// Step 5: Parse s value and check if canonicalization is needed
 s := new(big.Int).SetBytes(sBytes)
-
-// Step 4: Check and canonicalize s
 nDiv2 := new(big.Int)
 nDiv2.SetString("7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0", 16)
 
-sNeedsFlip := false
 if s.Cmp(nDiv2) > 0 {
-    // Canonicalize: s = N - s
+    // Step 6: Canonicalize s
     nValue := new(big.Int)
     nValue.SetString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16)
     s = new(big.Int).Sub(nValue, s)
-    sNeedsFlip = true
-}
+    sBytes = s.Bytes()
+    if len(sBytes) < 32 {
+        sBytes = append(make([]byte, 32-len(sBytes)), sBytes...)
+    }
 
-// Step 5: Reconstruct as 32-byte values
-sBytes = s.Bytes()
-if len(sBytes) < 32 {
-    sBytes = append(make([]byte, 32-len(sBytes)), sBytes...)
-}
-
-// Step 6: Build canonical signature
-canonical := append(rBytes, sBytes...)
-
-// Step 7: Adjust recovery ID if needed
-recoveryID := recoveryIDFromGo
-if sNeedsFlip {
+    // Step 7: Adjust recovery ID when s is flipped
     recoveryID = recoveryID ^ 1  // Flip y-parity bit
 }
 
-// Step 8: Create final signature
+// Step 8: Build final canonical signature
+canonical := append(rBytes, sBytes...)
 finalSig := append([]byte{byte(27 + 4 + recoveryID)}, canonical...)
+
+// Step 9: Add to transaction
 tx.Signatures = append(tx.Signatures, hex.EncodeToString(finalSig))
+return nil
 ```
 
 ## Constants
 
 ### secp256k1 Curve Parameters
+
 ```
 N (curve order) = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 N/2             = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0
 ```
 
 ### HIVE Chain ID
+
 ```
 HIVE_CHAIN_ID = "beeab0de00000000000000000000000000000000000000000000000000000000"
 ```
@@ -169,17 +203,20 @@ var WireSymbolAliases = map[string]string{
 ## Testing
 
 ### Build the transfer example:
+
 ```bash
 go build -o examples/transfer ./examples
 ```
 
 ### Test with valid WIF:
+
 ```bash
 export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ./examples/transfer
 ```
 
 ### What happens:
+
 1. Account queries work ✓
 2. Transaction signing produces canonical signature ✓
 3. Recovery ID is correctly adjusted if s was canonicalized ✓
@@ -199,14 +236,17 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ## Common Issues and Fixes
 
 ### "signature is not canonical"
+
 - **Cause**: s > N/2 and wasn't canonicalized
 - **Fix**: Check `if s > N/2: s = N - s` is executed
 
 ### "unable to reconstruct public key from signature"
+
 - **Cause**: Recovery ID is wrong, likely wasn't adjusted after s flip
 - **Fix**: Flip recovery ID bit 0 when s is canonicalized
 
 ### "Bad Cast: Invalid cast from null_type to Array"
+
 - **Cause**: API node doesn't support get_transaction_hex
 - **Fix**: Try different node, e.g., api.openhive.network
 
@@ -220,6 +260,7 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ## Summary
 
 The HIVE transaction signing process ensures:
+
 1. **Deterministic signatures** through s canonicalization
 2. **Proper recovery** through recovery ID bit adjustment
 3. **Blockchain compatibility** through wire format conversion

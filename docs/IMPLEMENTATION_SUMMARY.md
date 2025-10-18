@@ -7,6 +7,7 @@ The Golang version of nectarlite has been fully implemented with all critical fe
 ## Major Features Implemented
 
 ### 1. ✅ Account Management
+
 - **File**: `account/account.go`
 - **Features**:
   - Account data fetching from HIVE nodes
@@ -16,6 +17,7 @@ The Golang version of nectarlite has been fully implemented with all critical fe
   - Account balance and history tracking
 
 ### 2. ✅ Transaction Signing (Complete Implementation)
+
 - **File**: `transaction/transaction.go`
 - **Critical Features**:
   - ECDSA signature generation with recovery ID handling
@@ -25,6 +27,7 @@ The Golang version of nectarlite has been fully implemented with all critical fe
   - Full transaction lifecycle: create → sign → broadcast
 
 ### 3. ✅ Wire Format Conversion (STEEM/SBD Compatibility)
+
 - **File**: `types/types.go`
 - **Implementation**:
   - `WireSymbolAliases`: Maps HIVE↔STEEM, HBD↔SBD
@@ -33,6 +36,7 @@ The Golang version of nectarlite has been fully implemented with all critical fe
   - Transparent to the end user
 
 ### 4. ✅ Multi-Node JSON-RPC Client
+
 - **File**: `client/client.go`
 - **Features**:
   - Multiple node fallback support
@@ -41,6 +45,7 @@ The Golang version of nectarlite has been fully implemented with all critical fe
   - Proper error handling and reporting
 
 ### 5. ✅ Wallet Management
+
 - **File**: `wallet/wallet.go`
 - **Features**:
   - WIF private key management
@@ -49,6 +54,7 @@ The Golang version of nectarlite has been fully implemented with all critical fe
   - Support for multiple key types (active, posting, owner)
 
 ### 6. ✅ Exception Handling
+
 - **File**: `exceptions/exceptions.go`
 - **Exception Types**:
   - `TransactionError`: Transaction-specific errors
@@ -93,41 +99,49 @@ Output: Canonical HIVE-compatible signature ✅
 ## Critical Implementation Details
 
 ### S Canonicalization
+
 ```go
 // Only keep if s ≤ N/2
 if s.Cmp(nDiv2) > 0 {
     s = N - s  // Transform to canonical form
 }
 ```
+
 **Why**: HIVE blockchain requires canonical signatures for determinism and non-malleability.
 
 ### Recovery ID Adjustment
+
 ```go
 // When s is flipped, flip recovery ID bit 0
 if sNeedsFlip {
     recovery_id = recovery_id ^ 1
 }
 ```
+
 **Why**: The recovery formula depends on y-parity, which changes when s is flipped.
 
 ### Wire Format Conversion
+
 ```go
 // Convert during binary serialization
 HIVE → STEEM (in wire format)
 HBD → SBD (in wire format)
 // But user always sees and uses HIVE/HBD
 ```
+
 **Why**: HIVE fork from Steem maintains legacy wire protocol for blockchain compatibility.
 
 ## Constants Used
 
 ### secp256k1 Curve Parameters
+
 ```
 N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 N/2 = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0
 ```
 
 ### HIVE Chain ID
+
 ```
 HIVE_CHAIN_ID = "beeab0de00000000000000000000000000000000000000000000000000000000"
 ```
@@ -156,6 +170,7 @@ nectar-go/
 ## Testing & Validation
 
 ### Build Status
+
 ```bash
 ✓ All packages compile successfully
 ✓ No Go compilation errors
@@ -163,6 +178,7 @@ nectar-go/
 ```
 
 ### Features Verified
+
 - [x] Account queries return correct data
 - [x] Voting power calculation matches PeakD (54.94%)
 - [x] Transaction signing produces canonical signatures
@@ -172,6 +188,7 @@ nectar-go/
 - [x] Error handling comprehensive
 
 ### Example Usage
+
 ```go
 // Create client
 api := client.NewClient([]string{"https://api.hive.blog"}, 30)
@@ -201,24 +218,28 @@ result, _ := tx.Broadcast()
 ## Known Issues & Resolutions
 
 ### ✅ Issue 1: Voting Power Incorrect
+
 - **Symptom**: Returned 100% instead of ~55%
 - **Root Cause**: Using raw manabar.current_mana instead of voting_power field
 - **Resolution**: Prioritize voting_power field, use manabar for regeneration calc
 - **Status**: FIXED - Now returns 54.94% (verified against PeakD)
 
 ### ✅ Issue 2: Wire Format Mismatch
+
 - **Symptom**: Signatures not matching blockchain expectations
 - **Root Cause**: HIVE/HBD not converted to STEEM/SBD in wire format
 - **Resolution**: Implemented WireSymbolAliases and Amount.Bytes() conversion
 - **Status**: FIXED - Wire format now uses STEEM/SBD transparently
 
 ### ✅ Issue 3: Signature Not Canonical
+
 - **Symptom**: "is_canonical(c): signature is not canonical" error
 - **Root Cause**: s > N/2 not canonicalized
 - **Resolution**: Implemented s canonicalization check and conversion
 - **Status**: FIXED - All signatures now canonical
 
 ### ✅ Issue 4: Public Key Recovery Failed
+
 - **Symptom**: "unable to reconstruct public key from signature" error
 - **Root Cause**: Recovery ID not adjusted when s was canonicalized
 - **Resolution**: Flip recovery ID bit 0 when s is canonicalized
@@ -227,6 +248,7 @@ result, _ := tx.Broadcast()
 ## Compatibility
 
 ### Python nectarlite
+
 - ✅ Wire format conversion matches
 - ✅ Signature canonicalization matches
 - ✅ Recovery ID handling matches
@@ -234,12 +256,14 @@ result, _ := tx.Broadcast()
 - ✅ Account queries compatible
 
 ### HIVE Blockchain
+
 - ✅ Canonical signatures accepted
 - ✅ Wire protocol compliant
 - ✅ Chain ID correct
 - ✅ Operation types supported
 
 ### Go Version
+
 - ✅ Go 1.16+ compatibility
 - ✅ No unsafe code
 - ✅ Standard library only (plus btcsuite and go-ethereum)
@@ -255,11 +279,13 @@ github.com/ethereum/go-ethereum   # ECDSA signing & recovery
 ## Next Steps for Users
 
 1. **Build the project**:
+
    ```bash
    go build ./...
    ```
 
 2. **Run account query**:
+
    ```bash
    go run main.go
    ```
@@ -274,6 +300,7 @@ github.com/ethereum/go-ethereum   # ECDSA signing & recovery
 ## Conclusion
 
 The Go implementation of nectarlite is now **feature-complete** with all critical signing logic implemented:
+
 - ✅ ECDSA signature generation
 - ✅ S canonicalization
 - ✅ Recovery ID bit adjustment
