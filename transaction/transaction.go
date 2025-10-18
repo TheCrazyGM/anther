@@ -156,7 +156,7 @@ func (tx *Transaction) Sign(wif string) error {
 	// Use Decred's SignCompact which produces compact signatures with embedded recovery info
 	// This matches what Python's cryptography library does
 	// SignCompact returns: [27 + recovery_id + (4 if compressed)][r: 32 bytes][s: 32 bytes]
-	compactSig := ecdsa.SignCompact(privKeySEC, digest[:], true)  // true = compressed key
+	compactSig := ecdsa.SignCompact(privKeySEC, digest[:], true) // true = compressed key
 
 	// Extract recovery byte and signature components
 	recoveryByte := compactSig[0]

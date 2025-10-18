@@ -23,8 +23,8 @@ var WireSymbolAliases = map[string]string{
 
 // Asset metadata for serialization
 var AssetMetadata = map[string]map[string]interface{}{
-	"HIVE": {"precision": int64(3)},
-	"HBD":  {"precision": int64(3)},
+	"HIVE":  {"precision": int64(3)},
+	"HBD":   {"precision": int64(3)},
 	"VESTS": {"precision": int64(6)},
 }
 

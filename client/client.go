@@ -105,4 +105,3 @@ func (c *Client) GetDynamicGlobalProperties() (map[string]interface{}, error) {
 	}
 	return resp.(map[string]interface{}), nil
 }
-
