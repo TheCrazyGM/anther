@@ -66,7 +66,7 @@ The Golang version of nectarlite has been fully implemented with all critical fe
 
 ### Signing Flow Diagram
 
-```
+```text
 Input: WIF Private Key + Transaction Data
     ↓
 1. Prepare transaction with operations
@@ -135,20 +135,20 @@ HBD → SBD (in wire format)
 
 ### secp256k1 Curve Parameters
 
-```
+```go
 N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 N/2 = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0
 ```
 
 ### HIVE Chain ID
 
-```
+```go
 HIVE_CHAIN_ID = "beeab0de00000000000000000000000000000000000000000000000000000000"
 ```
 
 ## File Structure
 
-```
+```text
 nectar-go/
 ├── account/
 │   └── account.go              # Account management & voting power
@@ -171,7 +171,7 @@ nectar-go/
 
 ### Build Status
 
-```bash
+```text
 ✓ All packages compile successfully
 ✓ No Go compilation errors
 ✓ All dependencies resolved
@@ -271,9 +271,9 @@ result, _ := tx.Broadcast()
 
 ## Dependencies
 
-```
-github.com/btcsuite/btcd/btcutil  # WIF decoding
-github.com/ethereum/go-ethereum   # ECDSA signing & recovery
+```go
+github.com/btcsuite/btcd/btcutil  // WIF decoding
+github.com/ethereum/go-ethereum   // ECDSA signing & recovery
 ```
 
 ## Next Steps for Users
@@ -291,6 +291,7 @@ github.com/ethereum/go-ethereum   # ECDSA signing & recovery
    ```
 
 3. **Test transfers** (with valid WIF):
+
    ```bash
    export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
    go build -o examples/transfer ./examples

@@ -276,7 +276,7 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 ### Expected Output
 
-```
+```text
 === Nectarlite Go Library - Transfer Example ===
 
 Adding active key to wallet...
@@ -315,14 +315,15 @@ Result: <transaction_response>
 After successful broadcast, verify the transaction:
 
 1. **Hive Blocks (Explorer)**
-   - https://hiveblocks.com/
+   - <https://hiveblocks.com/>
    - Search for your transaction ID
 
 2. **PeakD (Community UI)**
-   - https://peakd.com/
+   - <https://peakd.com/>
    - View in account transactions
 
 3. **Command Line**
+
    ```bash
    # Check account balance
    ./nectar-go

@@ -4,7 +4,7 @@
 
 When signing HIVE transactions with Go, we initially got the error:
 
-```
+```text
 "unable to reconstruct public key from signature"
 ```
 
@@ -22,7 +22,7 @@ The **recovery ID** (0-3) tells us which of these paths was taken, allowing us t
 
 ### Recovery ID Encoding
 
-```
+```text
 recovery_id: 0-3 (2 bits)
   Bit 0: Y-coordinate parity (0=even, 1=odd)
   Bit 1: X-coordinate overflow (0=normal, 1=overflowed by N)
@@ -30,7 +30,7 @@ recovery_id: 0-3 (2 bits)
 
 In Bitcoin/HIVE signatures, this is encoded as:
 
-```
+```text
 final_byte = 27 + 4 + recovery_id
            = 31-34 (for compressed public keys)
 ```
@@ -45,7 +45,7 @@ Where:
 
 ### Original Signature from ECDSA
 
-```
+```text
 crypto.Sign() produces:
 sig = [recovery_id+27+4][r: 32 bytes][s: 32 bytes]
 ```
@@ -68,13 +68,13 @@ Here's the critical insight: **When you flip s, you're changing the mathematical
 
 The recovery formula is:
 
-```
+```text
 Q = r_inv * (s*R - e*G)
 ```
 
 If you change `s` to `N - s`:
 
-```
+```text
 Q' = r_inv * ((N-s)*R - e*G)
    = r_inv * (N*R - s*R - e*G)
    = r_inv * (-s*R - e*G)   [since N*R = 0 on the curve]
@@ -137,7 +137,7 @@ finalSig := append([]byte{byte(27 + 4 + recoveryID)}, append(rBytes, sBytes...).
 
 When we canonicalize `s` to `N - s`, we're affecting the y-coordinate of the elliptic curve point:
 
-```
+```text
 The curve equation: y² = x³ + 7 (mod p)
 ```
 
@@ -182,7 +182,7 @@ for attempt := 0; attempt < 100; attempt++ {
 
 ### Recovery ID Calculation
 
-```
+```text
 Original sig:    recovery_byte = 0x56 = 86 decimal
 Recovery ID:     (86 - 27) % 4 = 59 % 4 = 3 ✓
 
@@ -192,7 +192,7 @@ Final recovery_byte: 27 + 4 + 2 = 33 (0x21)
 
 ### Final Signature Format
 
-```
+```text
 [0x21][r: 32 bytes][canonical_s: 32 bytes] = 65 bytes
 ```
 
@@ -247,7 +247,7 @@ For a point `P = (x, y)` on the secp256k1 curve:
 
 In ECDSA recovery:
 
-```
+```text
 For signature (r, s) with message hash e:
   - recovery_bit_0 indicates y-parity of R point
   - recovery_bit_1 indicates x-overflow of R point
@@ -282,7 +282,7 @@ Therefore: `recovery_id' = recovery_id XOR 1`
 
 The complete recovery ID adjustment logic:
 
-```
+```text
 1. Extract recovery ID from crypto.Sign: (recovery_byte - 27) % 4
 2. Check if s > N/2
 3. If YES:

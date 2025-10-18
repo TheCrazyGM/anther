@@ -20,7 +20,7 @@ This document describes the complete transaction signing process for the HIVE bl
 
 ### Phase 3: ECDSA Signing with Decred secp256k1
 
-```
+```text
 digest (SHA256) → ECDSA sign with Decred secp256k1 → 65-byte compact signature
   [27 + recovery_id + 4][r: 32 bytes][s: 32 bytes]
 ```
@@ -82,7 +82,7 @@ if s > N/2 {
 
 ### Phase 7: Final Signature
 
-```
+```text
 Final Signature = [27 + 4 + recovery_id][r: 32 bytes][canonical_s: 32 bytes]
                 = [31-34][32 bytes][32 bytes]
                 = 65 bytes total
@@ -172,14 +172,14 @@ return nil
 
 ### secp256k1 Curve Parameters
 
-```
+```text
 N (curve order) = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 N/2             = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0
 ```
 
 ### HIVE Chain ID
 
-```
+```text
 HIVE_CHAIN_ID = "beeab0de00000000000000000000000000000000000000000000000000000000"
 ```
 
@@ -202,20 +202,20 @@ var WireSymbolAliases = map[string]string{
 
 ## Testing
 
-### Build the transfer example:
+### Build the transfer example
 
 ```bash
 go build -o examples/transfer ./examples
 ```
 
-### Test with valid WIF:
+### Test with valid WIF
 
 ```bash
 export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ./examples/transfer
 ```
 
-### What happens:
+### What happens
 
 1. Account queries work ✓
 2. Transaction signing produces canonical signature ✓
@@ -231,7 +231,7 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 - [x] Wire format converts HIVE/HBD to STEEM/SBD
 - [x] Transaction hex includes all operations
 - [x] Chain ID is included in digest
-- [x] Signature is 65 bytes: [1 recovery byte][32 r][32 s]
+- [x] Signature is 65 bytes: `[1 recovery byte][32 r][32 s]`
 
 ## Common Issues and Fixes
 

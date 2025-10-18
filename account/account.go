@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/thecrazygm/nectar-go/client"
+	"github.com/thecrazygm/nectar-go/haf"
 	"github.com/thecrazygm/nectar-go/transaction"
 )
 
@@ -15,10 +16,12 @@ const (
 
 // Account represents a Hive account.
 type Account struct {
-	Name   string
-	API    *client.Client
-	Data   map[string]any
-	rcInfo map[string]any
+	Name       string
+	API        *client.Client
+	Data       map[string]any
+	rcInfo     map[string]any
+	hafClient  *haf.Client
+	reputation *int64
 }
 
 // NewAccount creates a new Account.
@@ -47,7 +50,51 @@ func (a *Account) Refresh() error {
 	}
 
 	a.Data, _ = accounts[0].(map[string]any)
+	a.reputation = nil
 	return nil
+}
+
+// SetHAFClient allows injecting a custom HAF client for reputation and balance lookups.
+func (a *Account) SetHAFClient(client *haf.Client) {
+	a.hafClient = client
+}
+
+// GetReputation fetches the account reputation using the HAF API. When refresh is false and a
+// cached value exists it will be returned directly.
+func (a *Account) GetReputation(refresh bool) (int64, error) {
+	if a.reputation != nil && !refresh {
+		return *a.reputation, nil
+	}
+
+	client := a.hafClient
+	if client == nil {
+		defaultClient, err := haf.DefaultClient()
+		if err != nil {
+			return 0, err
+		}
+		client = defaultClient
+	}
+
+	result, err := client.Reputation(a.Name)
+	if err != nil {
+		return 0, err
+	}
+	if result == nil {
+		return 0, fmt.Errorf("no reputation data returned for account %s", a.Name)
+	}
+
+	a.reputation = &result.Reputation
+	return result.Reputation, nil
+}
+
+// Reputation returns the cached reputation value or fetches it when unavailable.
+func (a *Account) Reputation() (int64, error) {
+	return a.GetReputation(false)
+}
+
+// Rep is a shorthand alias for Reputation.
+func (a *Account) Rep() (int64, error) {
+	return a.GetReputation(false)
 }
 
 // Follow creates a follow transaction for another account.

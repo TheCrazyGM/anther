@@ -127,7 +127,7 @@ func main() {
 
 ### Transaction Signing Flow
 
-```
+```text
 WIF Key + Transaction Data
     ↓
 Create transaction with operations
@@ -186,7 +186,7 @@ This ensures the signature can properly recover to the original public key on th
 
 ## File Structure
 
-```
+```text
 nectar-go/
 ├── README.md                    # This file
 ├── IMPLEMENTATION_SUMMARY.md    # Complete feature list
@@ -312,7 +312,7 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 ## Dependencies
 
-```
+```text
 github.com/btcsuite/btcd/btcutil                        v1.x    # WIF key handling
 github.com/decred/dcrd/dcrec/secp256k1/v4                       # ECDSA signing (SignCompact)
 github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa                 # Signature operations

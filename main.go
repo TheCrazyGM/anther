@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/thecrazygm/nectar-go/account"
 	"github.com/thecrazygm/nectar-go/client"
 	"github.com/thecrazygm/nectar-go/transaction"
+	"github.com/thecrazygm/nectar-go/wallet"
 )
 
 func main() {
@@ -20,18 +22,23 @@ func main() {
 	// Create an account instance for "thecrazygm"
 	acc := account.NewAccount("thecrazygm", api)
 
-	fmt.Println("=== Nectarlite Go Library - Account Query ===\n")
+	fmt.Println("=== Nectarlite Go Library - Account Query ===")
 
 	// Refresh account data
 	fmt.Println("Fetching account data for 'thecrazygm'...")
 	if err := acc.Refresh(); err != nil {
 		log.Fatalf("Error refreshing account: %v", err)
 	}
-	fmt.Println("✓ Account data fetched successfully\n")
+	fmt.Println("✓ Account data fetched successfully")
 
 	// Display basic account info
 	fmt.Println("--- Basic Account Information ---")
 	fmt.Printf("Account Name: %s\n", acc.Name)
+	if reputation, err := acc.Reputation(); err != nil {
+		log.Printf("Error getting reputation: %v", err)
+	} else {
+		fmt.Printf("Reputation: %d\n", reputation)
+	}
 	if balance, ok := acc.Data["balance"].(string); ok {
 		fmt.Printf("Balance: %s\n", balance)
 	}
@@ -86,6 +93,22 @@ func main() {
 	fmt.Printf("  To: %s\n", transfer.To)
 	fmt.Printf("  Amount: %s\n", transfer.Amount)
 	fmt.Printf("  Memo: %s\n", transfer.Memo)
+	activeWIF := os.Getenv("ACTIVE_WIF")
+	if activeWIF == "" {
+		fmt.Println("\n--- Signing Skipped ---")
+		fmt.Println("ACTIVE_WIF not set; unable to sign sample transfer.")
+	} else {
+		fmt.Println("\n--- Signing Transfer ---")
+		w := wallet.NewWallet()
+		if err := w.AddKey("thecrazygm", "active", activeWIF); err != nil {
+			log.Printf("Error adding key to wallet: %v", err)
+		} else if err := w.Sign(tx, "thecrazygm", "active"); err != nil {
+			log.Printf("Error signing transfer: %v", err)
+		} else if len(tx.Signatures) > 0 {
+			fmt.Printf("Signature: %s\n", tx.Signatures[0])
+		}
+	}
+
 	fmt.Printf("\nRun the transfer example with ACTIVE_WIF env var to broadcast:\n")
 	fmt.Printf("  ACTIVE_WIF=<your-key> ./examples/transfer\n")
 

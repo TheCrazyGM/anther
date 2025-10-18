@@ -82,7 +82,7 @@ var WireSymbolAliases = map[string]string{
 
 ## Recovery ID Encoding
 
-```
+```text
 recovery_id: 0-3 (2 bits)
   Bit 0: Y-coordinate parity (even=0, odd=1)
   Bit 1: X-coordinate overflow (0=normal, 1=overflowed by N)
@@ -96,7 +96,7 @@ Final signature byte: 27 + 4 + recovery_id
 
 ## Transaction Signing Flow
 
-```
+```text
 Input Data
   ↓
 create tx → add operations → get tx hex from node → hash → sign

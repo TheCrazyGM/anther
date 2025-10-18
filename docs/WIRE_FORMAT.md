@@ -40,8 +40,8 @@ The conversion is automatic and transparent.
 
 ```go
 var WireSymbolAliases = map[string]string{
-	"HIVE": "STEEM",
-	"HBD":  "SBD",
+    "HIVE": "STEEM",
+    "HBD":  "SBD",
 }
 ```
 
@@ -49,7 +49,7 @@ var WireSymbolAliases = map[string]string{
 
 The `Amount.Bytes()` method handles the conversion:
 
-```
+```text
 User Input: 0.001 HIVE
     ↓ Parse amount
     ↓ Get wire symbol (HIVE → STEEM)
@@ -75,7 +75,7 @@ Wire Format:
 
 Supported assets and their properties:
 
-```
+```text
 HIVE   → STEEM   (precision: 3)   user sees HIVE
 HBD    → SBD     (precision: 3)   user sees HBD
 VESTS  → VESTS   (precision: 6)   no conversion needed

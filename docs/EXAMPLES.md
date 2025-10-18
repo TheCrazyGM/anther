@@ -21,7 +21,7 @@ Query account information, voting power, and resource credits:
 
 **Example Output:**
 
-```
+```text
 === Nectarlite Go Library - Account Query ===
 
 Fetching account data for 'thecrazygm'...
@@ -71,7 +71,7 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 **Example Output:**
 
-```
+```text
 === Nectarlite Go Library - Transfer Example ===
 
 Adding active key to wallet...
@@ -302,8 +302,8 @@ go build -o nectar-go
 
 Nectarlite connects to public Hive nodes:
 
-- https://api.hive.blog (primary)
-- https://api.hivecosystem.dev (fallback)
+- <https://api.hive.blog> (primary)
+- <https://api.syncad.com> (fallback)
 
 You can specify custom nodes when creating a client:
 
@@ -318,10 +318,10 @@ api := client.NewClient([]string{
 
 For more details on the Hive blockchain, visit:
 
-- https://developers.hive.io/
-- https://hiveblocks.com/
-- https://peakd.com/
+- <https://developers.hive.io/>
+- <https://hiveblocks.com/>
+- <https://peakd.com/>
 
 For the Python reference implementation, see:
 
-- https://github.com/hivecommunity/nectarlite
+- <https://github.com/hivecommunity/nectarlite>

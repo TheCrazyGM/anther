@@ -2,24 +2,16 @@ package transaction
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
-	"strings"
 	"time"
 
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
-
 	"github.com/thecrazygm/nectar-go/client"
+	cryptoutil "github.com/thecrazygm/nectar-go/crypto"
 	"github.com/thecrazygm/nectar-go/types"
 )
-
-const HIVE_CHAIN_ID = "beeab0de00000000000000000000000000000000000000000000000000000000"
 
 // OperationNames maps operation names to their numeric IDs
 var OperationNames = map[string]int{
@@ -96,12 +88,11 @@ func (tx *Transaction) Sign(wif string) error {
 	case string:
 		txHex = v
 	case map[string]any:
-		if hex, ok := v["hex"].(string); ok {
-			txHex = hex
-		} else if hex, ok := v["transaction_hex"].(string); ok {
-			txHex = hex
+		if hexValue, ok := v["hex"].(string); ok {
+			txHex = hexValue
+		} else if hexValue, ok := v["transaction_hex"].(string); ok {
+			txHex = hexValue
 		}
-		// If no hex field found, return the whole map as error info
 		if txHex == "" {
 			return fmt.Errorf("no hex field in response: %v", v)
 		}
@@ -109,87 +100,12 @@ func (tx *Transaction) Sign(wif string) error {
 		return fmt.Errorf("unexpected response type from get_transaction_hex: %T (value: %v)", v, v)
 	}
 
-	// Strip whitespace
-	txHex = strings.TrimSpace(txHex)
-
-	if txHex == "" {
-		return errors.New("empty transaction hex returned")
-	}
-
-	// Prepare the message to sign: chain ID + digest
-	chainIDBytes, err := hex.DecodeString(HIVE_CHAIN_ID)
+	signature, err := cryptoutil.SignTransactionHex(txHex, wif)
 	if err != nil {
-		return err
+		return fmt.Errorf("error signing transaction: %w", err)
 	}
 
-	txHexBytes, err := hex.DecodeString(txHex)
-	if err != nil {
-		return err
-	}
-
-	// Remove the final 2 characters (signature suffix)
-	if len(txHex) > 2 {
-		txHexBytes, _ = hex.DecodeString(txHex[:len(txHex)-2])
-	}
-
-	message := append(chainIDBytes, txHexBytes...)
-
-	// Following Python implementation exactly:
-	// Line 83: digest = hashlib.sha256(message).digest()
-	digest := sha256.Sum256(message)
-
-	// Line 84: e = int.from_bytes(digest, "big") % N
-	N := new(big.Int)
-	N.SetString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16)
-	e := new(big.Int).SetBytes(digest[:])
-	e.Mod(e, N)
-
-	wifDecoded, err := btcutil.DecodeWIF(wif)
-	if err != nil {
-		return err
-	}
-
-	// Convert WIF private key bytes to Decred secp256k1 private key
-	privKeyBytes := wifDecoded.PrivKey.Serialize()
-	privKeySEC := secp256k1.PrivKeyFromBytes(privKeyBytes)
-
-	// Use Decred's SignCompact which produces compact signatures with embedded recovery info
-	// This matches what Python's cryptography library does
-	// SignCompact returns: [27 + recovery_id + (4 if compressed)][r: 32 bytes][s: 32 bytes]
-	compactSig := ecdsa.SignCompact(privKeySEC, digest[:], true) // true = compressed key
-
-	// Extract recovery byte and signature components
-	recoveryByte := compactSig[0]
-	rBytes := compactSig[1:33]
-	sBytes := compactSig[33:65]
-
-	// Extract recovery ID from recovery byte
-	// Format: 27 + recovery_id + 4 (for compressed)
-	// So: recovery_id = (recoveryByte - 27 - 4) = recoveryByte - 31
-	recoveryID := int(recoveryByte) - 31
-
-	// Line 94-95: Check if s needs canonicalization
-	s := new(big.Int).SetBytes(sBytes)
-	nDiv2 := new(big.Int)
-	nDiv2.SetString("7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0", 16)
-
-	if s.Cmp(nDiv2) > 0 {
-		// Canonicalize: s = N - s
-		s = new(big.Int).Sub(N, s)
-		sBytes = s.Bytes()
-		if len(sBytes) < 32 {
-			sBytes = append(make([]byte, 32-len(sBytes)), sBytes...)
-		}
-
-		// When s is flipped, the recovery ID's y-parity bit changes
-		recoveryID = recoveryID ^ 1
-	}
-
-	// Build the final canonical signature: [27 + 4 + recoveryID][r][canonical_s]
-	canonical := append(rBytes, sBytes...)
-	finalSig := append([]byte{byte(27 + 4 + recoveryID)}, canonical...)
-
-	tx.Signatures = append(tx.Signatures, hex.EncodeToString(finalSig))
+	tx.Signatures = append(tx.Signatures, signature)
 	return nil
 }
 
