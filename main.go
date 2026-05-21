@@ -15,7 +15,7 @@ func main() {
 	// Initialize the client with Hive nodes
 	nodes := []string{
 		"https://api.hive.blog",
-		"https://api.hivecosystem.dev",
+		"https://api.syncad.com",
 	}
 	api := client.NewClient(nodes, 30)
 
