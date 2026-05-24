@@ -60,10 +60,7 @@ func main() {
 		fmt.Printf("✓ Block Witness:   @%s\n", block.Witness)
 		fmt.Printf("  Transactions:    %d\n", len(block.Transactions))
 		if len(block.TransactionIDs) > 0 {
-			showCount := 3
-			if len(block.TransactionIDs) < showCount {
-				showCount = len(block.TransactionIDs)
-			}
+			showCount := min(len(block.TransactionIDs), 3)
 			fmt.Printf("  Tx ID Snippets:  %v\n", block.TransactionIDs[:showCount])
 		}
 

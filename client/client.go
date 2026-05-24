@@ -69,7 +69,7 @@ func (c *Client) Call(api string, method string, params any) (any, error) {
 	var lastErr error
 	backoff := time.Duration(baseBackoffMS) * time.Millisecond
 
-	for attempt := 0; attempt < maxRetries; attempt++ {
+	for attempt := range maxRetries {
 		for i := 0; i < len(c.Nodes); i++ {
 			nodeURL := c.GetNextNode()
 			payload, err := c.BuildPayload(api, method, params)

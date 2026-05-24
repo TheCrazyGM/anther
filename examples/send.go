@@ -45,7 +45,7 @@ func main() {
 
 	fmt.Printf("Polling for block inclusion")
 	var foundTx any
-	for i := 0; i < 15; i++ {
+	for range 15 {
 		txData, err := api.GetTransaction(trxID)
 		if err == nil && txData != nil {
 			foundTx = txData
