@@ -46,48 +46,82 @@ This document outlines the strategic roadmap for bringing **`anther`** to a feat
 
 ---
 
-## ⏳ Phase 8: Comprehensive Operation Coverage (v1.0.0 Target)
+## ✅ Phase 8: Comprehensive Operation Coverage (COMPLETED)
 
-Expand local serialization, types, and operation structures to cover the full dApp operation suite:
-- [ ] **Social & Curation Operations**:
-  - [ ] Implement `comment_options` operation (ID 19) structure, dict parsing, and local wire serialization.
-  - [ ] Implement `delete_comment` operation (ID 17) structure and serialization.
-- [ ] **Financial Operations**:
-  - [ ] Implement `transfer_to_vesting` operation (ID 3) structure and serialization.
-  - [ ] Implement `withdraw_vesting` operation (ID 4) structure and serialization.
-  - [ ] Implement `delegate_vesting_shares` operation (ID 40) structure and serialization.
-  - [ ] Implement `claim_reward_balance` operation (ID 39) structure and serialization.
-  - [ ] Implement `recurrent_transfer` operation (ID 49) structure and serialization.
-- [ ] **Account Management Operations**:
-  - [ ] Implement `claim_account` operation (ID 22) structure and serialization.
-  - [ ] Implement `create_claimed_account` operation (ID 23) structure and serialization.
-  - [ ] Implement `account_update` operation (ID 10) structure and serialization.
+- [x] **Social & Curation Operations**:
+  - [x] Implemented `comment_options` (ID 19) operation structure, dictionary mapping, and local wire serialization.
+  - [x] Implemented `delete_comment` (ID 17) operation structure and serialization.
+- [x] **Financial Operations**:
+  - [x] Implemented `transfer_to_vesting` (ID 3) structure and serialization.
+  - [x] Implemented `withdraw_vesting` (ID 4) structure and serialization.
+  - [x] Implemented `delegate_vesting_shares` (ID 40) structure and serialization.
+  - [x] Implemented `claim_reward_balance` (ID 39) structure and serialization.
+  - [x] Implemented `recurrent_transfer` (ID 49) structure and serialization.
+- [x] **Account Management Operations**:
+  - [x] Implemented `claim_account` (ID 22) structure and serialization.
+  - [x] Implemented `create_claimed_account` (ID 23) structure and serialization.
+  - [x] Implemented `account_update` (ID 10) structure and serialization.
 
-## ⏳ Phase 9: Blockchain Streaming (v1.0.0 Target)
+## ✅ Phase 9: Blockchain Streaming (COMPLETED)
 
-Build native, concurrent, channel-based blockchain streams:
-- [ ] **Live Block Stream**:
-  - [ ] Implement `StreamBlocks(ctx context.Context, startBlock uint32) (chan *types.Block, chan error)` method on Client.
-  - [ ] Add automatic block height tracking, polling, and missing block backfilling.
-  - [ ] Support context cancellation to cleanly stop streaming goroutines.
-- [ ] **Live Operation Stream**:
-  - [ ] Implement `StreamOperations(ctx context.Context, startBlock uint32, filterOps ...string) (chan types.Operation, chan error)` method on Client.
-  - [ ] Implement automatic operation parsing and filtering based on operation names.
+- [x] **Live Block Stream**:
+  - [x] Implemented `StreamBlocks` method on Client using concurrent goroutines and channels.
+  - [x] Handled automatic block height polling, polling latency, backfilling missing blocks, and node consensus latency.
+- [x] **Live Operation Stream**:
+  - [x] Implemented `StreamOperations` method on Client.
+  - [x] Supported client-side type-based filtering of incoming operations.
 
-## ⏳ Phase 10: Private Memo Encryption & Decryption (v1.0.0 Target)
+## ✅ Phase 10: Private Memo Encryption & Decryption (COMPLETED)
 
-Implement key-based message security matching Pollen's memo implementation:
-- [ ] **ECDH Shared Secret Derivation**: Derive shared secrets from secp256k1 private keys and recipient public keys.
-- [ ] **AES-CBC-256 Encryption**: Secure payload encryption with PKCS#7 padding.
-- [ ] **SHA-512 Hash Authentication**: Add double-hash verification checks on encrypted payloads.
-- [ ] **Private Memo Formatter**: Support encrypting/decrypting memos prefixed with `#`.
+- [x] **ECDH Shared Secret**: Derived shared secrets offline using secp256k1 private keys and recipient public keys.
+- [x] **AES-256-CBC Payload Encryption**: Implemented AES-256-CBC cipher block chaining with PKCS#7 padding.
+- [x] **SHA-512 Verification**: Added message authentication checks to prevent packet tampering.
+- [x] **Base58 Formatting**: Handled `#` prefixing and standard Hive-compatible Base58 memo envelopes.
 
-## ⏳ Phase 11: Advanced Authority & Multi-Signature (v1.0.0 Target)
+## ✅ Phase 11: Advanced Authority & Multi-Signature (COMPLETED)
 
-- [ ] **Multi-Signature Transactions**: Sign a single transaction with keys representing different roles/accounts.
-- [ ] **Public Key Recovery**: Recover the public key from compact signatures.
-- [ ] **Authority Verification**: Implement local check verifying if a transaction's signatures meet the consensus authority thresholds.
+- [x] **Multi-Sig Transactions**: Allowed signing a transaction with multiple WIF keys sequentially via `SignMany`.
+- [x] **Public Key Recovery**: Recovered public keys from compact signatures via `RecoverKeyFromSignature`.
+- [x] **Authority Threshold Checking**: Implemented local `VerifyAuthority` checking threshold limits for account and key authorities.
+
+## ⏳ Phase 12: High-Level API Expansion & Parity (v1.0.0 Target)
+
+To reach full v1.0.0 functionality and bring Anther to parity with Pollen and Nectar, we need to surface the remaining database, Resource Credit (RC), Hivemind, and simplified broadcast wrappers.
+
+### 1. Database API Completeness
+Surface direct methods on `Client` to query secondary blockchain properties:
+- [ ] **`GetConfig`**: Query compiler configurations from the node.
+- [ ] **`GetChainProperties`**: Fetch current chain limits (minimum delegation fees, HBD interest rates).
+- [ ] **`GetCurrentMedianHistoryPrice`**: Retrieve the median conversion price for HIVE/HBD.
+- [ ] **`GetAccounts`**: Query profile details for multiple accounts in a single call.
+- [ ] **`GetAccountHistory`**: Query transaction history for a user, supporting pagination.
+- [ ] **`GetVestingDelegations`**: Fetch active delegation logs.
+- [ ] **`GetBlockHeader`**: Fetch only block headers (witness, timestamp, previous) to save bandwidth.
+
+### 2. Resource Credit (RC) Sub-API
+Surface Resource Credit monitoring APIs in `Client` matching Pollen's `rc` helper:
+- [ ] **`GetRCParams`**: Retrieve global RC cost parameters.
+- [ ] **`GetRCPool`**: Retrieve current global resource availability pools.
+- [ ] **`GetRCMana`**: Fetch a user's current Resource Credit manabar details.
+- [ ] **Mana Math & Calculations**:
+  - [ ] Implement `CalculateRCMana` (compute real-time regenerated RC).
+  - [ ] Implement `CalculateVPMana` (compute real-time regenerated Voting Power).
+
+### 3. Social & Content (Hivemind API)
+Surface methods to browse social posts, communities, and notifications matching Pollen's `hivemind` helper:
+- [ ] **`GetRankedPosts`**: Fetch post feeds based on rank (trending, hot, created, promoted).
+- [ ] **`GetAccountPosts`**: Fetch post feeds authored by, replied to, or voted on by a user.
+- [ ] **`GetCommunity`**: Retrieve profile details for a community.
+- [ ] **`ListCommunities`**: Query communities registry with filtering and sorting.
+- [ ] **`GetAccountNotifications`**: Fetch user notification feeds (mentions, reblogs, replies).
+
+### 4. Simplified Quick Broadcast Helpers
+Add high-level helper functions on `Client` to sign and broadcast common operations in a single line (avoiding manual Transaction assembly):
+- [ ] **`client.BroadcastVote(voter, author, permlink, weight, wif)`**
+- [ ] **`client.BroadcastTransfer(from, to, amount, memo, wif)`**
+- [ ] **`client.BroadcastComment(author, permlink, parentAuthor, parentPermlink, title, body, jsonMetadata, wif)`**
+- [ ] **`client.BroadcastCustomJSON(id, jsonString, requiredPostingAuths, wif)`**
 
 ---
 
-_Document updated on Sunday, May 24, 2026. Mapped out to v1.0.0._
+_Document updated on Sunday, May 24, 2026. Roadmap finalized for v1.0.0._
