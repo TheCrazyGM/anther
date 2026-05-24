@@ -168,9 +168,6 @@ func (tx *Transaction) Broadcast() (any, error) {
 	}, nil
 }
 
-
-
-
 // toDict converts the transaction to a dictionary.
 func (tx *Transaction) toDict() map[string]any {
 	ops := []any{}
