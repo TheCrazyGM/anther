@@ -36,12 +36,44 @@ func NewClient(nodes []string, timeout int) *Client {
 	}
 }
 
-// GetNextNode gets the next available node from the list.
+// GetNextNode gets the next available node from the list (legacy round-robin helper).
 func (c *Client) GetNextNode() string {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+	if len(c.Nodes) == 0 {
+		return ""
+	}
 	c.CurrentNodeIndex = (c.CurrentNodeIndex + 1) % len(c.Nodes)
 	return c.Nodes[c.CurrentNodeIndex]
+}
+
+// GetCurrentNode returns the currently selected node URL.
+// If no node has been selected yet, it selects the first one.
+func (c *Client) GetCurrentNode() string {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	if len(c.Nodes) == 0 {
+		return ""
+	}
+	if c.CurrentNodeIndex < 0 {
+		c.CurrentNodeIndex = 0
+	}
+	return c.Nodes[c.CurrentNodeIndex]
+}
+
+// RotateNode advances the client to the next node in the list and returns it.
+func (c *Client) RotateNode() string {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	if len(c.Nodes) == 0 {
+		return ""
+	}
+	c.CurrentNodeIndex = (c.CurrentNodeIndex + 1) % len(c.Nodes)
+	node := c.Nodes[c.CurrentNodeIndex]
+	if enableLogging {
+		logDebug("switching node to: %s", node)
+	}
+	return node
 }
 
 // BuildPayload builds the JSON-RPC payload.
@@ -64,14 +96,14 @@ const (
 	baseBackoffMS = 100
 )
 
-// Call makes a JSON-RPC call to a Hive node with node failover and exponential backoff retries.
+// Call makes a JSON-RPC call to a Hive node with sticky node failover and exponential backoff retries.
 func (c *Client) Call(api string, method string, params any) (any, error) {
 	var lastErr error
 	backoff := time.Duration(baseBackoffMS) * time.Millisecond
 
 	for attempt := range maxRetries {
 		for i := 0; i < len(c.Nodes); i++ {
-			nodeURL := c.GetNextNode()
+			nodeURL := c.GetCurrentNode()
 			payload, err := c.BuildPayload(api, method, params)
 			if err != nil {
 				return nil, err
@@ -104,7 +136,11 @@ func (c *Client) Call(api string, method string, params any) (any, error) {
 				return json.Unmarshal(body, &result)
 			}()
 			if err != nil {
+				if enableLogging {
+					logDebug("node %s call failed: %v", nodeURL, err)
+				}
 				lastErr = err
+				c.RotateNode()
 				continue
 			}
 
@@ -121,6 +157,9 @@ func (c *Client) Call(api string, method string, params any) (any, error) {
 		}
 
 		if attempt < maxRetries-1 {
+			if enableLogging {
+				logDebug("all nodes failed on attempt %d, backing off for %v...", attempt+1, backoff)
+			}
 			time.Sleep(backoff)
 			backoff *= 2
 		}
@@ -189,6 +228,43 @@ func (c *Client) GetBlock(blockNum uint32) (*types.Block, error) {
 		return nil, err
 	}
 	return &block, nil
+}
+
+// GetBlockRange fetches a range of blocks starting from startingBlockNum.
+func (c *Client) GetBlockRange(startingBlockNum uint32, count uint32) ([]*types.Block, error) {
+	params := map[string]any{
+		"starting_block_num": startingBlockNum,
+		"count":              count,
+	}
+	resp, err := c.Call("block_api", "get_block_range", params)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, fmt.Errorf("block range starting at %d not found", startingBlockNum)
+	}
+
+	respMap, ok := resp.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("unexpected response type for get_block_range")
+	}
+
+	blocksVal, ok := respMap["blocks"]
+	if !ok {
+		return nil, fmt.Errorf("missing 'blocks' field in get_block_range response")
+	}
+
+	bytesVal, err := json.Marshal(blocksVal)
+	if err != nil {
+		return nil, err
+	}
+
+	var blocks []*types.Block
+	if err := json.Unmarshal(bytesVal, &blocks); err != nil {
+		return nil, err
+	}
+
+	return blocks, nil
 }
 
 // GetOpsInBlock fetches applied operations in a block.

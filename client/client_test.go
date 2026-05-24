@@ -183,3 +183,182 @@ func TestStreamBlocksAndOps(t *testing.T) {
 		}
 	})
 }
+
+func TestClientStickyFailover(t *testing.T) {
+	c := NewClient([]string{"http://node1", "http://node2"}, 30)
+
+	// Initially, it should return the first node as current (index 0)
+	node1 := c.GetCurrentNode()
+	if node1 != "http://node1" {
+		t.Fatalf("expected http://node1, got %s", node1)
+	}
+
+	// Repeated calls to GetCurrentNode should remain sticky (still node 1)
+	node2 := c.GetCurrentNode()
+	if node2 != "http://node1" {
+		t.Fatalf("expected http://node1, got %s", node2)
+	}
+
+	// Rotating should advance to the next node (node 2)
+	next := c.RotateNode()
+	if next != "http://node2" {
+		t.Fatalf("expected http://node2, got %s", next)
+	}
+
+	// Now GetCurrentNode should return node 2
+	curr := c.GetCurrentNode()
+	if curr != "http://node2" {
+		t.Fatalf("expected http://node2, got %s", curr)
+	}
+
+	// Rotating again should cycle back to node 1
+	next2 := c.RotateNode()
+	if next2 != "http://node1" {
+		t.Fatalf("expected http://node1, got %s", next2)
+	}
+}
+
+func TestCallStickyBehavior(t *testing.T) {
+	var callCount1, callCount2 int
+
+	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount1++
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"jsonrpc": "2.0",
+			"id":      1,
+			"result":  map[string]any{"ok": true},
+		})
+	}))
+	defer server1.Close()
+
+	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount2++
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"jsonrpc": "2.0",
+			"id":      1,
+			"result":  map[string]any{"ok": true},
+		})
+	}))
+	defer server2.Close()
+
+	c := NewClient([]string{server1.URL, server2.URL}, 30)
+
+	// First call should hit server1
+	_, err := c.Call("test", "method", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Second call should ALSO hit server1 because of sticky logic
+	_, err = c.Call("test", "method", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if callCount1 != 2 || callCount2 != 0 {
+		t.Fatalf("expected 2 calls to server1 and 0 to server2, got %d and %d", callCount1, callCount2)
+	}
+}
+
+func TestCallStickyFailover(t *testing.T) {
+	var callCount1, callCount2 int
+
+	// Server1 will fail (return 500 error / connection closed / transport error)
+	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount1++
+		// Close connection immediately to simulate transport error
+		hj, ok := w.(http.Hijacker)
+		if ok {
+			conn, _, _ := hj.Hijack()
+			_ = conn.Close()
+			return
+		}
+		http.Error(w, "error", http.StatusInternalServerError)
+	}))
+	defer server1.Close()
+
+	// Server2 will succeed
+	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount2++
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"jsonrpc": "2.0",
+			"id":      1,
+			"result":  map[string]any{"ok": true},
+		})
+	}))
+	defer server2.Close()
+
+	c := NewClient([]string{server1.URL, server2.URL}, 30)
+
+	// Call should first try server1, fail, rotate to server2, and succeed.
+	_, err := c.Call("test", "method", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if callCount1 != 1 || callCount2 != 1 {
+		t.Fatalf("expected 1 call to server1 and 1 to server2, got %d and %d", callCount1, callCount2)
+	}
+
+	// Subsequent call should immediately hit server2 (since it is sticky now)
+	_, err = c.Call("test", "method", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if callCount1 != 1 || callCount2 != 2 {
+		t.Fatalf("expected server2 to be sticky, got call counts: server1=%d, server2=%d", callCount1, callCount2)
+	}
+}
+
+func TestGetBlockRange(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		method := payload["method"].(string)
+		response := map[string]any{"jsonrpc": "2.0", "id": payload["id"]}
+
+		if method == "block_api.get_block_range" {
+			params := payload["params"].(map[string]any)
+			start := params["starting_block_num"].(float64)
+			count := params["count"].(float64)
+
+			blocks := []any{}
+			for i := 0; i < int(count); i++ {
+				blocks = append(blocks, map[string]any{
+					"block_id":  fmt.Sprintf("block-id-%d", int(start)+i),
+					"previous":  "prev-hash",
+					"timestamp": "2026-05-24T12:00:00",
+					"witness":   "initminer",
+				})
+			}
+			response["result"] = map[string]any{
+				"blocks": blocks,
+			}
+		} else {
+			response["error"] = map[string]any{"message": "unknown method"}
+		}
+
+		_ = json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
+
+	c := NewClient([]string{server.URL}, 30)
+
+	blocks, err := c.GetBlockRange(100, 3)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(blocks) != 3 {
+		t.Fatalf("expected 3 blocks, got %d", len(blocks))
+	}
+
+	if blocks[0].BlockID != "block-id-100" || blocks[1].BlockID != "block-id-101" || blocks[2].BlockID != "block-id-102" {
+		t.Fatalf("unexpected block range response content")
+	}
+}

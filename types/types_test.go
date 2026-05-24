@@ -97,3 +97,35 @@ func TestAppliedOperationUnmarshal(t *testing.T) {
 		t.Errorf("expected OpInTrx 4294967295, got %d", op.OpInTrx)
 	}
 }
+
+func TestOperationTupleUnmarshal(t *testing.T) {
+	t.Run("array format", func(t *testing.T) {
+		jsonData := `["transfer", {"from": "alice", "to": "bob", "amount": "1.000 HIVE"}]`
+		var ot OperationTuple
+		if err := json.Unmarshal([]byte(jsonData), &ot); err != nil {
+			t.Fatalf("unexpected error unmarshaling array-based OperationTuple: %v", err)
+		}
+		if len(ot) != 2 || ot[0] != "transfer" {
+			t.Fatalf("unexpected result: %#v", ot)
+		}
+	})
+
+	t.Run("object format", func(t *testing.T) {
+		jsonData := `{"type": "transfer", "value": {"from": "alice", "to": "bob", "amount": "1.000 HIVE"}}`
+		var ot OperationTuple
+		if err := json.Unmarshal([]byte(jsonData), &ot); err != nil {
+			t.Fatalf("unexpected error unmarshaling object-based OperationTuple: %v", err)
+		}
+		if len(ot) != 2 || ot[0] != "transfer" {
+			t.Fatalf("unexpected result: %#v", ot)
+		}
+	})
+
+	t.Run("invalid format", func(t *testing.T) {
+		jsonData := `"just a string"`
+		var ot OperationTuple
+		if err := json.Unmarshal([]byte(jsonData), &ot); err == nil {
+			t.Fatalf("expected error for invalid OperationTuple format")
+		}
+	})
+}

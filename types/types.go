@@ -4,6 +4,7 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -160,6 +161,29 @@ type BlockHeader struct {
 
 // OperationTuple represents an operation inside a block transaction: [op_name, op_data]
 type OperationTuple []any
+
+// UnmarshalJSON customizes unmarshaling for OperationTuple to support both legacy array-based format [type, value]
+// and Block API object-based format {"type": "...", "value": ...}.
+func (ot *OperationTuple) UnmarshalJSON(data []byte) error {
+	// 1. Try to unmarshal as an array (standard Condenser API style: [op_name, op_data])
+	var arrayVal []any
+	if err := json.Unmarshal(data, &arrayVal); err == nil {
+		*ot = OperationTuple(arrayVal)
+		return nil
+	}
+
+	// 2. Try to unmarshal as an object (Block API style: {"type": op_name, "value": op_data})
+	var objVal struct {
+		Type  string `json:"type"`
+		Value any    `json:"value"`
+	}
+	if err := json.Unmarshal(data, &objVal); err == nil {
+		*ot = OperationTuple{objVal.Type, objVal.Value}
+		return nil
+	}
+
+	return fmt.Errorf("failed to unmarshal OperationTuple: invalid format")
+}
 
 // TransactionInBlock represents a transaction inside a block.
 type TransactionInBlock struct {
