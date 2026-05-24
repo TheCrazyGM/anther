@@ -132,7 +132,7 @@ The implementation has been verified to:
 - ✅ Build successfully with Decred library
 - ✅ Generate canonical signatures
 - ✅ Properly handle recovery ID adjustment
-- ✅ Match the Python nectarlite reference
+- ✅ Match the Python anther reference
 - ✅ Broadcast transactions to HIVE network
 
 ## Summary

@@ -1,6 +1,6 @@
-# Nectarlite Go - Usage Examples
+# Anther Go - Usage Examples
 
-This document demonstrates how to use the Nectarlite Go library for common Hive blockchain operations.
+This document demonstrates how to use the Anther Go library for common Hive blockchain operations.
 
 ## Running the Examples
 
@@ -22,7 +22,7 @@ Query account information, voting power, and resource credits:
 **Example Output:**
 
 ```text
-=== Nectarlite Go Library - Account Query ===
+=== Anther Go Library - Account Query ===
 
 Fetching account data for 'thecrazygm'...
 ✓ Account data fetched successfully
@@ -72,7 +72,7 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 **Example Output:**
 
 ```text
-=== Nectarlite Go Library - Transfer Example ===
+=== Anther Go Library - Transfer Example ===
 
 Adding active key to wallet...
 ✓ Key added successfully
@@ -113,8 +113,8 @@ Result: <transaction_response>
 package main
 
 import (
-    "github.com/thecrazygm/nectar-go/account"
-    "github.com/thecrazygm/nectar-go/client"
+    "github.com/thecrazygm/anther/account"
+    "github.com/thecrazygm/anther/client"
 )
 
 func main() {
@@ -144,9 +144,9 @@ func main() {
 package main
 
 import (
-    "github.com/thecrazygm/nectar-go/transaction"
-    "github.com/thecrazygm/nectar-go/wallet"
-    "github.com/thecrazygm/nectar-go/client"
+    "github.com/thecrazygm/anther/transaction"
+    "github.com/thecrazygm/anther/wallet"
+    "github.com/thecrazygm/anther/client"
 )
 
 func main() {
@@ -181,9 +181,9 @@ func main() {
 package main
 
 import (
-    "github.com/thecrazygm/nectar-go/transaction"
-    "github.com/thecrazygm/nectar-go/wallet"
-    "github.com/thecrazygm/nectar-go/client"
+    "github.com/thecrazygm/anther/transaction"
+    "github.com/thecrazygm/anther/wallet"
+    "github.com/thecrazygm/anther/client"
 )
 
 func main() {
@@ -215,9 +215,9 @@ func main() {
 package main
 
 import (
-    "github.com/thecrazygm/nectar-go/account"
-    "github.com/thecrazygm/nectar-go/wallet"
-    "github.com/thecrazygm/nectar-go/client"
+    "github.com/thecrazygm/anther/account"
+    "github.com/thecrazygm/anther/wallet"
+    "github.com/thecrazygm/anther/client"
 )
 
 func main() {
@@ -252,7 +252,7 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 The library provides custom exception types:
 
 ```go
-import "github.com/thecrazygm/nectar-go/exceptions"
+import "github.com/thecrazygm/anther/exceptions"
 
 // Transaction errors
 err := tx.Sign(wif)
@@ -300,7 +300,7 @@ go build -o nectar-go
 
 ## API Endpoints
 
-Nectarlite connects to public Hive nodes:
+Anther connects to public Hive nodes:
 
 - <https://api.hive.blog> (primary)
 - <https://api.syncad.com> (fallback)
@@ -324,4 +324,4 @@ For more details on the Hive blockchain, visit:
 
 For the Python reference implementation, see:
 
-- <https://github.com/hivecommunity/nectarlite>
+- <https://github.com/hivecommunity/anther>

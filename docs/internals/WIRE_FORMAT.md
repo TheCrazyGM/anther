@@ -175,10 +175,10 @@ The `Transfer` type in `transaction/transaction.go`:
 package main
 
 import (
-    "github.com/thecrazygm/nectar-go/client"
-    "github.com/thecrazygm/nectar-go/transaction"
-    "github.com/thecrazygm/nectar-go/types"
-    "github.com/thecrazygm/nectar-go/wallet"
+    "github.com/thecrazygm/anther/client"
+    "github.com/thecrazygm/anther/transaction"
+    "github.com/thecrazygm/anther/types"
+    "github.com/thecrazygm/anther/wallet"
 )
 
 func main() {
@@ -222,7 +222,7 @@ If the signatures match blockchain expectations, the transaction will be accepte
 
 This implementation matches:
 
-- ✓ Python nectarlite library behavior
+- ✓ Python anther library behavior
 - ✓ Hive blockchain wire protocol
 - ✓ Legacy STEEM transaction format
 - ✓ Modern HIVE/HBD user interface

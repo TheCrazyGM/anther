@@ -153,7 +153,7 @@ Therefore: `recovery_id' = recovery_id ^ 1` (flip only bit 0)
 The Python cryptography library uses similar logic internally:
 
 ```python
-# Python nectarlite uses cryptography library's signing
+# Python anther uses cryptography library's signing
 # which produces compact signatures with recovery info
 signature_bytes = private_key.sign_compact(message)
 # This returns 65-byte compact signature with embedded recovery ID

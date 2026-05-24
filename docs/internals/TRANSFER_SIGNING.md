@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Nectarlite Go library supports creating and signing transfer transactions on the Hive blockchain. This guide explains the signing process and how to use it.
+The Anther Go library supports creating and signing transfer transactions on the Hive blockchain. This guide explains the signing process and how to use it.
 
 ## Transfer Example
 
@@ -12,10 +12,10 @@ The Nectarlite Go library supports creating and signing transfer transactions on
 package main
 
 import (
-    "github.com/thecrazygm/nectar-go/account"
-    "github.com/thecrazygm/nectar-go/client"
-    "github.com/thecrazygm/nectar-go/transaction"
-    "github.com/thecrazygm/nectar-go/wallet"
+    "github.com/thecrazygm/anther/account"
+    "github.com/thecrazygm/anther/client"
+    "github.com/thecrazygm/anther/transaction"
+    "github.com/thecrazygm/anther/wallet"
 )
 
 func main() {
@@ -277,7 +277,7 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ### Expected Output
 
 ```text
-=== Nectarlite Go Library - Transfer Example ===
+=== Anther Go Library - Transfer Example ===
 
 Adding active key to wallet...
 ✓ Key added successfully

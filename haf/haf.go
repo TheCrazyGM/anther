@@ -18,7 +18,7 @@ var defaultAPIs = []string{
 
 const (
 	defaultTimeout = 30 * time.Second
-	userAgent      = "nectarlite-go/0.0.1"
+	userAgent      = "anther/1.0.0"
 )
 
 // Client is an HTTP client for interacting with Hive Account Framework (HAF) endpoints.

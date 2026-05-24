@@ -1,4 +1,4 @@
-# Nectarlite Go - Quick Reference Guide
+# Anther Go - Quick Reference Guide
 
 ## Critical Code: Signature Signing with Recovery ID Adjustment
 
@@ -294,7 +294,7 @@ amtBytes, _ := amt.Bytes()
 
 - **Implementation**: Go 1.16+
 - **Status**: Production-Ready ✅
-- **Compatibility**: Python nectarlite 1:1 match
+- **Compatibility**: Python anther 1:1 match
 - **Blockchain**: HIVE mainnet compatible
 
 ---
