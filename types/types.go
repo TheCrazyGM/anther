@@ -11,6 +11,47 @@ import (
 	"time"
 )
 
+// Time represents a timezone-naive UTC timestamp returned by the Hive API (format: "YYYY-MM-DDTHH:MM:SS").
+type Time time.Time
+
+// UnmarshalJSON customizes unmarshaling for Time to parse the Hive datetime format.
+func (ht *Time) UnmarshalJSON(b []byte) error {
+	s := string(b)
+	// Strip quotes
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		s = s[1 : len(s)-1]
+	}
+	if s == "" || s == "null" {
+		*ht = Time(time.Time{})
+		return nil
+	}
+	t, err := time.Parse("2006-01-02T15:04:05", s)
+	if err != nil {
+		return err
+	}
+	*ht = Time(t)
+	return nil
+}
+
+// MarshalJSON customizes marshaling for Time to format as the Hive datetime string.
+func (ht Time) MarshalJSON() ([]byte, error) {
+	t := time.Time(ht)
+	if t.IsZero() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf(`"%s"`, t.Format("2006-01-02T15:04:05"))), nil
+}
+
+// Time converts types.Time back to the standard time.Time.
+func (ht Time) Time() time.Time {
+	return time.Time(ht)
+}
+
+// String returns the string representation of types.Time.
+func (ht Time) String() string {
+	return time.Time(ht).Format("2006-01-02T15:04:05")
+}
+
 // Amount represents a Hive asset (e.g., "100.000 HIVE").
 type Amount struct {
 	Value  float64
@@ -118,7 +159,7 @@ func parseFloat(s string) (float64, error) {
 type DynamicGlobalProperties struct {
 	HeadBlockNumber          uint32 `json:"head_block_number"`
 	HeadBlockID              string `json:"head_block_id"`
-	Time                     string `json:"time"`
+	Time                     Time   `json:"time"`
 	LastIrreversibleBlockNum uint32 `json:"last_irreversible_block_num"`
 }
 
@@ -133,11 +174,11 @@ type AccountData struct {
 	Name          string  `json:"name"`
 	VotingPower   float64 `json:"voting_power"`
 	VotingManabar Manabar `json:"voting_manabar"`
-	LastVoteTime  string  `json:"last_vote_time"`
+	LastVoteTime  Time    `json:"last_vote_time"`
 	Balance       string  `json:"balance"`
 	HbdBalance    string  `json:"hbd_balance"`
 	VestingShares string  `json:"vesting_shares"`
-	Created       string  `json:"created"`
+	Created       Time    `json:"created"`
 }
 
 // RCInfo represents a player's Resource Credit information.
@@ -153,7 +194,7 @@ type RCInfo struct {
 // BlockHeader represents the header of a Hive block.
 type BlockHeader struct {
 	Previous              string `json:"previous"`
-	Timestamp             string `json:"timestamp"`
+	Timestamp             Time   `json:"timestamp"`
 	Witness               string `json:"witness"`
 	TransactionMerkleRoot string `json:"transaction_merkle_root"`
 	Extensions            []any  `json:"extensions"`
@@ -189,7 +230,7 @@ func (ot *OperationTuple) UnmarshalJSON(data []byte) error {
 type TransactionInBlock struct {
 	RefBlockNum    uint16           `json:"ref_block_num"`
 	RefBlockPrefix uint32           `json:"ref_block_prefix"`
-	Expiration     string           `json:"expiration"`
+	Expiration     Time             `json:"expiration"`
 	Operations     []OperationTuple `json:"operations"`
 	Extensions     []any            `json:"extensions"`
 	Signatures     []string         `json:"signatures"`
@@ -199,7 +240,7 @@ type TransactionInBlock struct {
 type Block struct {
 	BlockID               string               `json:"block_id"`
 	Previous              string               `json:"previous"`
-	Timestamp             string               `json:"timestamp"`
+	Timestamp             Time                 `json:"timestamp"`
 	Witness               string               `json:"witness"`
 	TransactionMerkleRoot string               `json:"transaction_merkle_root"`
 	Extensions            []any                `json:"extensions"`

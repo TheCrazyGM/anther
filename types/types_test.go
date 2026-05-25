@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"math"
 	"testing"
+	"time"
 )
 
 func TestParseAmount(t *testing.T) {
@@ -126,6 +127,46 @@ func TestOperationTupleUnmarshal(t *testing.T) {
 		var ot OperationTuple
 		if err := json.Unmarshal([]byte(jsonData), &ot); err == nil {
 			t.Fatalf("expected error for invalid OperationTuple format")
+		}
+	})
+}
+
+func TestTimeUnmarshal(t *testing.T) {
+	t.Run("valid datetime", func(t *testing.T) {
+		jsonData := `"2026-05-24T23:17:09"`
+		var ht Time
+		if err := json.Unmarshal([]byte(jsonData), &ht); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		expectedTime, _ := time.Parse("2006-01-02T15:04:05", "2026-05-24T23:17:09")
+		if ht.Time() != expectedTime {
+			t.Fatalf("expected %v, got %v", expectedTime, ht.Time())
+		}
+		if ht.String() != "2026-05-24T23:17:09" {
+			t.Fatalf("expected string 2026-05-24T23:17:09, got %s", ht.String())
+		}
+	})
+
+	t.Run("null or empty", func(t *testing.T) {
+		var ht Time
+		if err := json.Unmarshal([]byte("null"), &ht); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !ht.Time().IsZero() {
+			t.Fatalf("expected zero time, got %v", ht.Time())
+		}
+	})
+
+	t.Run("marshal time", func(t *testing.T) {
+		parsed, _ := time.Parse("2006-01-02T15:04:05", "2026-05-24T23:17:09")
+		ht := Time(parsed)
+		b, err := json.Marshal(ht)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		expectedJSON := `"2026-05-24T23:17:09"`
+		if string(b) != expectedJSON {
+			t.Fatalf("expected %s, got %s", expectedJSON, string(b))
 		}
 	})
 }
