@@ -90,10 +90,7 @@ func (c *Client) GetRCMana(account string) (*types.RCInfo, error) {
 	if !lastUpdateTime.IsZero() && maxRC > 0 {
 		diff := time.Since(lastUpdateTime).Seconds()
 		regenerated := diff * float64(maxRC) / float64(5*24*60*60)
-		currentMana = lastMana + int64(regenerated)
-		if currentMana > maxRC {
-			currentMana = maxRC
-		}
+		currentMana = min(lastMana+int64(regenerated), maxRC)
 	}
 
 	lastPercent := 0.0

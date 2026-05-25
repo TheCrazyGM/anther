@@ -39,7 +39,7 @@ func (ht Time) MarshalJSON() ([]byte, error) {
 	if t.IsZero() {
 		return []byte("null"), nil
 	}
-	return []byte(fmt.Sprintf(`"%s"`, t.Format("2006-01-02T15:04:05"))), nil
+	return fmt.Appendf(nil, `"%s"`, t.Format("2006-01-02T15:04:05")), nil
 }
 
 // Time converts types.Time back to the standard time.Time.
