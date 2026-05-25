@@ -221,14 +221,38 @@ Package client provides a JSON\-RPC client to interact with Hive blockchain node
 
 - [type Client](<#Client>)
   - [func NewClient\(nodes \[\]string, timeout int\) \*Client](<#NewClient>)
+  - [func \(c \*Client\) BroadcastComment\(author, permlink, parentAuthor, parentPermlink, title, body, jsonMetadata string, wif string\) \(any, error\)](<#Client.BroadcastComment>)
+  - [func \(c \*Client\) BroadcastCustomJSON\(id, jsonString string, requiredPostingAuths \[\]string, wif string\) \(any, error\)](<#Client.BroadcastCustomJSON>)
+  - [func \(c \*Client\) BroadcastTransfer\(from, to, amount, memo string, wif string\) \(any, error\)](<#Client.BroadcastTransfer>)
+  - [func \(c \*Client\) BroadcastVote\(voter, author, permlink string, weight int16, wif string\) \(any, error\)](<#Client.BroadcastVote>)
   - [func \(c \*Client\) BuildPayload\(api string, method string, params any\) \(map\[string\]any, error\)](<#Client.BuildPayload>)
+  - [func \(c \*Client\) CalculateRCMana\(accountData \*types.AccountData\) float64](<#Client.CalculateRCMana>)
+  - [func \(c \*Client\) CalculateVPMana\(accountData \*types.AccountData\) float64](<#Client.CalculateVPMana>)
   - [func \(c \*Client\) Call\(api string, method string, params any\) \(any, error\)](<#Client.Call>)
+  - [func \(c \*Client\) GetAccountHistory\(account string, start int64, limit uint32\) \(\[\]\*types.HistoryItem, error\)](<#Client.GetAccountHistory>)
+  - [func \(c \*Client\) GetAccountNotifications\(account string, limit uint32\) \(\[\]map\[string\]any, error\)](<#Client.GetAccountNotifications>)
+  - [func \(c \*Client\) GetAccountPosts\(sort string, account string, limit uint32, startAuthor string, startPermlink string\) \(\[\]map\[string\]any, error\)](<#Client.GetAccountPosts>)
+  - [func \(c \*Client\) GetAccounts\(accounts \[\]string\) \(\[\]\*types.AccountData, error\)](<#Client.GetAccounts>)
   - [func \(c \*Client\) GetBlock\(blockNum uint32\) \(\*types.Block, error\)](<#Client.GetBlock>)
+  - [func \(c \*Client\) GetBlockHeader\(blockNum uint32\) \(\*types.BlockHeader, error\)](<#Client.GetBlockHeader>)
+  - [func \(c \*Client\) GetBlockRange\(startingBlockNum uint32, count uint32\) \(\[\]\*types.Block, error\)](<#Client.GetBlockRange>)
+  - [func \(c \*Client\) GetChainProperties\(\) \(\*types.ChainProperties, error\)](<#Client.GetChainProperties>)
+  - [func \(c \*Client\) GetCommunity\(name string\) \(map\[string\]any, error\)](<#Client.GetCommunity>)
+  - [func \(c \*Client\) GetConfig\(\) \(map\[string\]any, error\)](<#Client.GetConfig>)
+  - [func \(c \*Client\) GetCurrentMedianHistoryPrice\(\) \(\*types.Price, error\)](<#Client.GetCurrentMedianHistoryPrice>)
+  - [func \(c \*Client\) GetCurrentNode\(\) string](<#Client.GetCurrentNode>)
   - [func \(c \*Client\) GetDynamicGlobalProperties\(\) \(map\[string\]any, error\)](<#Client.GetDynamicGlobalProperties>)
   - [func \(c \*Client\) GetDynamicGlobalPropertiesStruct\(\) \(\*types.DynamicGlobalProperties, error\)](<#Client.GetDynamicGlobalPropertiesStruct>)
   - [func \(c \*Client\) GetNextNode\(\) string](<#Client.GetNextNode>)
   - [func \(c \*Client\) GetOpsInBlock\(blockNum uint32, onlyVirtual bool\) \(\[\]\*types.AppliedOperation, error\)](<#Client.GetOpsInBlock>)
+  - [func \(c \*Client\) GetRCMana\(account string\) \(\*types.RCInfo, error\)](<#Client.GetRCMana>)
+  - [func \(c \*Client\) GetRCParams\(\) \(map\[string\]any, error\)](<#Client.GetRCParams>)
+  - [func \(c \*Client\) GetRCPool\(\) \(map\[string\]any, error\)](<#Client.GetRCPool>)
+  - [func \(c \*Client\) GetRankedPosts\(sort string, startAuthor string, startPermlink string, limit uint32, tag string\) \(\[\]map\[string\]any, error\)](<#Client.GetRankedPosts>)
   - [func \(c \*Client\) GetTransaction\(trxID string\) \(any, error\)](<#Client.GetTransaction>)
+  - [func \(c \*Client\) GetVestingDelegations\(delegator string, start string, limit uint32\) \(\[\]\*types.VestingDelegation, error\)](<#Client.GetVestingDelegations>)
+  - [func \(c \*Client\) ListCommunities\(last string, limit uint32, query string\) \(\[\]map\[string\]any, error\)](<#Client.ListCommunities>)
+  - [func \(c \*Client\) RotateNode\(\) string](<#Client.RotateNode>)
   - [func \(c \*Client\) StreamBlocks\(ctx context.Context, startBlock uint32, mode StreamingMode\) \(\<\-chan \*types.Block, \<\-chan error\)](<#Client.StreamBlocks>)
   - [func \(c \*Client\) StreamOperations\(ctx context.Context, startBlock uint32, mode StreamingMode, filter \[\]string\) \(\<\-chan \*types.AppliedOperation, \<\-chan error\)](<#Client.StreamOperations>)
 - [type StreamingMode](<#StreamingMode>)
@@ -257,6 +281,42 @@ func NewClient(nodes []string, timeout int) *Client
 
 NewClient creates a new Client.
 
+<a name="Client.BroadcastComment"></a>
+### func \(\*Client\) BroadcastComment
+
+```go
+func (c *Client) BroadcastComment(author, permlink, parentAuthor, parentPermlink, title, body, jsonMetadata string, wif string) (any, error)
+```
+
+BroadcastComment creates, signs, and broadcasts a comment \(post or reply\) transaction.
+
+<a name="Client.BroadcastCustomJSON"></a>
+### func \(\*Client\) BroadcastCustomJSON
+
+```go
+func (c *Client) BroadcastCustomJSON(id, jsonString string, requiredPostingAuths []string, wif string) (any, error)
+```
+
+BroadcastCustomJSON creates, signs, and broadcasts a custom JSON transaction using posting authority.
+
+<a name="Client.BroadcastTransfer"></a>
+### func \(\*Client\) BroadcastTransfer
+
+```go
+func (c *Client) BroadcastTransfer(from, to, amount, memo string, wif string) (any, error)
+```
+
+BroadcastTransfer creates, signs, and broadcasts a transfer transaction.
+
+<a name="Client.BroadcastVote"></a>
+### func \(\*Client\) BroadcastVote
+
+```go
+func (c *Client) BroadcastVote(voter, author, permlink string, weight int16, wif string) (any, error)
+```
+
+BroadcastVote creates, signs, and broadcasts a vote transaction.
+
 <a name="Client.BuildPayload"></a>
 ### func \(\*Client\) BuildPayload
 
@@ -266,6 +326,24 @@ func (c *Client) BuildPayload(api string, method string, params any) (map[string
 
 BuildPayload builds the JSON\-RPC payload.
 
+<a name="Client.CalculateRCMana"></a>
+### func \(\*Client\) CalculateRCMana
+
+```go
+func (c *Client) CalculateRCMana(accountData *types.AccountData) float64
+```
+
+CalculateRCMana queries and calculates the current Resource Credit percentage.
+
+<a name="Client.CalculateVPMana"></a>
+### func \(\*Client\) CalculateVPMana
+
+```go
+func (c *Client) CalculateVPMana(accountData *types.AccountData) float64
+```
+
+CalculateVPMana calculates the real\-time Voting Power percentage of an account.
+
 <a name="Client.Call"></a>
 ### func \(\*Client\) Call
 
@@ -273,7 +351,43 @@ BuildPayload builds the JSON\-RPC payload.
 func (c *Client) Call(api string, method string, params any) (any, error)
 ```
 
-Call makes a JSON\-RPC call to a Hive node with node failover and exponential backoff retries.
+Call makes a JSON\-RPC call to a Hive node with sticky node failover and exponential backoff retries.
+
+<a name="Client.GetAccountHistory"></a>
+### func \(\*Client\) GetAccountHistory
+
+```go
+func (c *Client) GetAccountHistory(account string, start int64, limit uint32) ([]*types.HistoryItem, error)
+```
+
+GetAccountHistory fetches the operation history of an account. The limit parameter cannot exceed 1000.
+
+<a name="Client.GetAccountNotifications"></a>
+### func \(\*Client\) GetAccountNotifications
+
+```go
+func (c *Client) GetAccountNotifications(account string, limit uint32) ([]map[string]any, error)
+```
+
+GetAccountNotifications retrieves notifications for a specific account.
+
+<a name="Client.GetAccountPosts"></a>
+### func \(\*Client\) GetAccountPosts
+
+```go
+func (c *Client) GetAccountPosts(sort string, account string, limit uint32, startAuthor string, startPermlink string) ([]map[string]any, error)
+```
+
+GetAccountPosts retrieves posts created by or associated with a specific account.
+
+<a name="Client.GetAccounts"></a>
+### func \(\*Client\) GetAccounts
+
+```go
+func (c *Client) GetAccounts(accounts []string) ([]*types.AccountData, error)
+```
+
+GetAccounts fetches details for a list of account names.
 
 <a name="Client.GetBlock"></a>
 ### func \(\*Client\) GetBlock
@@ -283,6 +397,69 @@ func (c *Client) GetBlock(blockNum uint32) (*types.Block, error)
 ```
 
 GetBlock fetches a signed block by number.
+
+<a name="Client.GetBlockHeader"></a>
+### func \(\*Client\) GetBlockHeader
+
+```go
+func (c *Client) GetBlockHeader(blockNum uint32) (*types.BlockHeader, error)
+```
+
+GetBlockHeader returns the block header for a specific block.
+
+<a name="Client.GetBlockRange"></a>
+### func \(\*Client\) GetBlockRange
+
+```go
+func (c *Client) GetBlockRange(startingBlockNum uint32, count uint32) ([]*types.Block, error)
+```
+
+GetBlockRange fetches a range of blocks starting from startingBlockNum.
+
+<a name="Client.GetChainProperties"></a>
+### func \(\*Client\) GetChainProperties
+
+```go
+func (c *Client) GetChainProperties() (*types.ChainProperties, error)
+```
+
+GetChainProperties returns the current chain properties.
+
+<a name="Client.GetCommunity"></a>
+### func \(\*Client\) GetCommunity
+
+```go
+func (c *Client) GetCommunity(name string) (map[string]any, error)
+```
+
+GetCommunity retrieves details about a specific community.
+
+<a name="Client.GetConfig"></a>
+### func \(\*Client\) GetConfig
+
+```go
+func (c *Client) GetConfig() (map[string]any, error)
+```
+
+GetConfig returns the node's configuration map.
+
+<a name="Client.GetCurrentMedianHistoryPrice"></a>
+### func \(\*Client\) GetCurrentMedianHistoryPrice
+
+```go
+func (c *Client) GetCurrentMedianHistoryPrice() (*types.Price, error)
+```
+
+GetCurrentMedianHistoryPrice returns the current median history price for HIVE/HBD.
+
+<a name="Client.GetCurrentNode"></a>
+### func \(\*Client\) GetCurrentNode
+
+```go
+func (c *Client) GetCurrentNode() string
+```
+
+GetCurrentNode returns the currently selected node URL. If no node has been selected yet, it selects the first one.
 
 <a name="Client.GetDynamicGlobalProperties"></a>
 ### func \(\*Client\) GetDynamicGlobalProperties
@@ -309,7 +486,7 @@ GetDynamicGlobalPropertiesStruct fetches the dynamic global properties of the Hi
 func (c *Client) GetNextNode() string
 ```
 
-GetNextNode gets the next available node from the list.
+GetNextNode gets the next available node from the list \(legacy round\-robin helper\).
 
 <a name="Client.GetOpsInBlock"></a>
 ### func \(\*Client\) GetOpsInBlock
@@ -320,6 +497,42 @@ func (c *Client) GetOpsInBlock(blockNum uint32, onlyVirtual bool) ([]*types.Appl
 
 GetOpsInBlock fetches applied operations in a block.
 
+<a name="Client.GetRCMana"></a>
+### func \(\*Client\) GetRCMana
+
+```go
+func (c *Client) GetRCMana(account string) (*types.RCInfo, error)
+```
+
+GetRCMana retrieves and calculates Resource Credit details for a specific account.
+
+<a name="Client.GetRCParams"></a>
+### func \(\*Client\) GetRCParams
+
+```go
+func (c *Client) GetRCParams() (map[string]any, error)
+```
+
+GetRCParams fetches the Resource Credit resource parameters.
+
+<a name="Client.GetRCPool"></a>
+### func \(\*Client\) GetRCPool
+
+```go
+func (c *Client) GetRCPool() (map[string]any, error)
+```
+
+GetRCPool fetches the Resource Credit resource pool.
+
+<a name="Client.GetRankedPosts"></a>
+### func \(\*Client\) GetRankedPosts
+
+```go
+func (c *Client) GetRankedPosts(sort string, startAuthor string, startPermlink string, limit uint32, tag string) ([]map[string]any, error)
+```
+
+GetRankedPosts retrieves ranked posts from the Hivemind bridge API.
+
 <a name="Client.GetTransaction"></a>
 ### func \(\*Client\) GetTransaction
 
@@ -328,6 +541,33 @@ func (c *Client) GetTransaction(trxID string) (any, error)
 ```
 
 GetTransaction fetches a transaction by its transaction ID.
+
+<a name="Client.GetVestingDelegations"></a>
+### func \(\*Client\) GetVestingDelegations
+
+```go
+func (c *Client) GetVestingDelegations(delegator string, start string, limit uint32) ([]*types.VestingDelegation, error)
+```
+
+GetVestingDelegations returns active vesting delegations for an account. The limit parameter cannot exceed 1000.
+
+<a name="Client.ListCommunities"></a>
+### func \(\*Client\) ListCommunities
+
+```go
+func (c *Client) ListCommunities(last string, limit uint32, query string) ([]map[string]any, error)
+```
+
+ListCommunities retrieves a list of communities.
+
+<a name="Client.RotateNode"></a>
+### func \(\*Client\) RotateNode
+
+```go
+func (c *Client) RotateNode() string
+```
+
+RotateNode advances the client to the next node in the list and returns it.
 
 <a name="Client.StreamBlocks"></a>
 ### func \(\*Client\) StreamBlocks
@@ -374,6 +614,9 @@ import "github.com/thecrazygm/anther/crypto"
 ## Index
 
 - [Constants](<#constants>)
+- [func Base58Decode\(input string\) \[\]byte](<#Base58Decode>)
+- [func Base58Encode\(input \[\]byte\) string](<#Base58Encode>)
+- [func DecodeWIF\(wif string\) \(\[\]byte, error\)](<#DecodeWIF>)
 - [func RecoverKeyFromSignature\(signatureHex string, digest \[\]byte\) \(string, error\)](<#RecoverKeyFromSignature>)
 - [func SignTransactionBytes\(txBytes \[\]byte, wif string\) \(string, error\)](<#SignTransactionBytes>)
 - [func SignTransactionBytesWithChainID\(txBytes \[\]byte, wif string, chainID string\) \(string, error\)](<#SignTransactionBytesWithChainID>)
@@ -389,6 +632,33 @@ import "github.com/thecrazygm/anther/crypto"
 ```go
 const HiveChainID = "beeab0de00000000000000000000000000000000000000000000000000000000"
 ```
+
+<a name="Base58Decode"></a>
+## func Base58Decode
+
+```go
+func Base58Decode(input string) []byte
+```
+
+Base58Decode decodes a Base58 string into a byte slice.
+
+<a name="Base58Encode"></a>
+## func Base58Encode
+
+```go
+func Base58Encode(input []byte) string
+```
+
+Base58Encode encodes a byte slice into a Base58 string.
+
+<a name="DecodeWIF"></a>
+## func DecodeWIF
+
+```go
+func DecodeWIF(wif string) ([]byte, error)
+```
+
+DecodeWIF decodes a private key in WIF format and returns the raw 32\-byte private key.
 
 <a name="RecoverKeyFromSignature"></a>
 ## func RecoverKeyFromSignature
@@ -764,11 +1034,12 @@ Package transaction handles constructing, encoding, signing, verifying, and broa
   - [func \(f \*Follow\) Bytes\(\) \(\[\]byte, error\)](<#Follow.Bytes>)
   - [func \(f \*Follow\) ToDict\(\) \(string, map\[string\]any\)](<#Follow.ToDict>)
 - [type Operation](<#Operation>)
+- [type RPCClient](<#RPCClient>)
 - [type RecurrentTransfer](<#RecurrentTransfer>)
   - [func \(rt \*RecurrentTransfer\) Bytes\(\) \(\[\]byte, error\)](<#RecurrentTransfer.Bytes>)
   - [func \(rt \*RecurrentTransfer\) ToDict\(\) \(string, map\[string\]any\)](<#RecurrentTransfer.ToDict>)
 - [type Transaction](<#Transaction>)
-  - [func NewTransaction\(api \*client.Client\) \*Transaction](<#NewTransaction>)
+  - [func NewTransaction\(api RPCClient\) \*Transaction](<#NewTransaction>)
   - [func \(tx \*Transaction\) AppendOp\(op Operation\)](<#Transaction.AppendOp>)
   - [func \(tx \*Transaction\) Broadcast\(\) \(any, error\)](<#Transaction.Broadcast>)
   - [func \(tx \*Transaction\) Bytes\(\) \(\[\]byte, error\)](<#Transaction.Bytes>)
@@ -1207,6 +1478,18 @@ type Operation interface {
 }
 ```
 
+<a name="RPCClient"></a>
+## type RPCClient
+
+RPCClient defines the client behaviors required by Transaction operations.
+
+```go
+type RPCClient interface {
+    GetDynamicGlobalProperties() (map[string]any, error)
+    Call(api string, method string, params any) (any, error)
+}
+```
+
 <a name="RecurrentTransfer"></a>
 ## type RecurrentTransfer
 
@@ -1253,7 +1536,7 @@ type Transaction struct {
     Expiration     time.Time
     Operations     []Operation
     Signatures     []string
-    API            *client.Client
+    API            RPCClient
 }
 ```
 
@@ -1261,7 +1544,7 @@ type Transaction struct {
 ### func NewTransaction
 
 ```go
-func NewTransaction(api *client.Client) *Transaction
+func NewTransaction(api RPCClient) *Transaction
 ```
 
 NewTransaction creates a new Transaction.
@@ -1474,11 +1757,23 @@ Package types defines the core structures and types used across the Anther libra
 - [type AppliedOperation](<#AppliedOperation>)
 - [type Block](<#Block>)
 - [type BlockHeader](<#BlockHeader>)
+- [type ChainProperties](<#ChainProperties>)
 - [type DynamicGlobalProperties](<#DynamicGlobalProperties>)
+- [type HistoryItem](<#HistoryItem>)
+  - [func \(h \*HistoryItem\) UnmarshalJSON\(data \[\]byte\) error](<#HistoryItem.UnmarshalJSON>)
 - [type Manabar](<#Manabar>)
+  - [func \(m \*Manabar\) UnmarshalJSON\(data \[\]byte\) error](<#Manabar.UnmarshalJSON>)
 - [type OperationTuple](<#OperationTuple>)
+  - [func \(ot \*OperationTuple\) UnmarshalJSON\(data \[\]byte\) error](<#OperationTuple.UnmarshalJSON>)
+- [type Price](<#Price>)
 - [type RCInfo](<#RCInfo>)
+- [type Time](<#Time>)
+  - [func \(ht Time\) MarshalJSON\(\) \(\[\]byte, error\)](<#Time.MarshalJSON>)
+  - [func \(ht Time\) String\(\) string](<#Time.String>)
+  - [func \(ht Time\) Time\(\) time.Time](<#Time.Time>)
+  - [func \(ht \*Time\) UnmarshalJSON\(b \[\]byte\) error](<#Time.UnmarshalJSON>)
 - [type TransactionInBlock](<#TransactionInBlock>)
+- [type VestingDelegation](<#VestingDelegation>)
 
 
 ## Variables
@@ -1512,11 +1807,11 @@ type AccountData struct {
     Name          string  `json:"name"`
     VotingPower   float64 `json:"voting_power"`
     VotingManabar Manabar `json:"voting_manabar"`
-    LastVoteTime  string  `json:"last_vote_time"`
+    LastVoteTime  Time    `json:"last_vote_time"`
     Balance       string  `json:"balance"`
     HbdBalance    string  `json:"hbd_balance"`
     VestingShares string  `json:"vesting_shares"`
-    Created       string  `json:"created"`
+    Created       Time    `json:"created"`
 }
 ```
 
@@ -1593,7 +1888,7 @@ Block represents a full signed Hive block.
 type Block struct {
     BlockID               string               `json:"block_id"`
     Previous              string               `json:"previous"`
-    Timestamp             string               `json:"timestamp"`
+    Timestamp             Time                 `json:"timestamp"`
     Witness               string               `json:"witness"`
     TransactionMerkleRoot string               `json:"transaction_merkle_root"`
     Extensions            []any                `json:"extensions"`
@@ -1612,10 +1907,23 @@ BlockHeader represents the header of a Hive block.
 ```go
 type BlockHeader struct {
     Previous              string `json:"previous"`
-    Timestamp             string `json:"timestamp"`
+    Timestamp             Time   `json:"timestamp"`
     Witness               string `json:"witness"`
     TransactionMerkleRoot string `json:"transaction_merkle_root"`
     Extensions            []any  `json:"extensions"`
+}
+```
+
+<a name="ChainProperties"></a>
+## type ChainProperties
+
+ChainProperties represents the blockchain configuration properties.
+
+```go
+type ChainProperties struct {
+    AccountCreationFee string `json:"account_creation_fee"`
+    MaximumBlockSize   uint32 `json:"maximum_block_size"`
+    HbdInterestRate    uint16 `json:"hbd_interest_rate"`
 }
 ```
 
@@ -1628,10 +1936,31 @@ DynamicGlobalProperties represents the dynamic global properties of the Hive blo
 type DynamicGlobalProperties struct {
     HeadBlockNumber          uint32 `json:"head_block_number"`
     HeadBlockID              string `json:"head_block_id"`
-    Time                     string `json:"time"`
+    Time                     Time   `json:"time"`
     LastIrreversibleBlockNum uint32 `json:"last_irreversible_block_num"`
 }
 ```
+
+<a name="HistoryItem"></a>
+## type HistoryItem
+
+HistoryItem represents an entry in the account history.
+
+```go
+type HistoryItem struct {
+    Seq uint64
+    Op  AppliedOperation
+}
+```
+
+<a name="HistoryItem.UnmarshalJSON"></a>
+### func \(\*HistoryItem\) UnmarshalJSON
+
+```go
+func (h *HistoryItem) UnmarshalJSON(data []byte) error
+```
+
+UnmarshalJSON customizes unmarshaling for HistoryItem to parse the \[seq, op\] array format.
 
 <a name="Manabar"></a>
 ## type Manabar
@@ -1640,10 +1969,19 @@ Manabar represents a player's voting or RC mana bar.
 
 ```go
 type Manabar struct {
-    CurrentMana    float64 `json:"current_mana,string"`
+    CurrentMana    float64 `json:"current_mana"`
     LastUpdateTime int64   `json:"last_update_time"`
 }
 ```
+
+<a name="Manabar.UnmarshalJSON"></a>
+### func \(\*Manabar\) UnmarshalJSON
+
+```go
+func (m *Manabar) UnmarshalJSON(data []byte) error
+```
+
+UnmarshalJSON customizes unmarshaling for Manabar to support both string and numeric current\_mana.
 
 <a name="OperationTuple"></a>
 ## type OperationTuple
@@ -1652,6 +1990,27 @@ OperationTuple represents an operation inside a block transaction: \[op\_name, o
 
 ```go
 type OperationTuple []any
+```
+
+<a name="OperationTuple.UnmarshalJSON"></a>
+### func \(\*OperationTuple\) UnmarshalJSON
+
+```go
+func (ot *OperationTuple) UnmarshalJSON(data []byte) error
+```
+
+UnmarshalJSON customizes unmarshaling for OperationTuple to support both legacy array\-based format \[type, value\] and Block API object\-based format \{"type": "...", "value": ...\}.
+
+<a name="Price"></a>
+## type Price
+
+Price represents Hive base/quote asset ratio.
+
+```go
+type Price struct {
+    Base  string `json:"base"`
+    Quote string `json:"quote"`
+}
 ```
 
 <a name="RCInfo"></a>
@@ -1670,6 +2029,51 @@ type RCInfo struct {
 }
 ```
 
+<a name="Time"></a>
+## type Time
+
+Time represents a timezone\-naive UTC timestamp returned by the Hive API \(format: "YYYY\-MM\-DDTHH:MM:SS"\).
+
+```go
+type Time time.Time
+```
+
+<a name="Time.MarshalJSON"></a>
+### func \(Time\) MarshalJSON
+
+```go
+func (ht Time) MarshalJSON() ([]byte, error)
+```
+
+MarshalJSON customizes marshaling for Time to format as the Hive datetime string.
+
+<a name="Time.String"></a>
+### func \(Time\) String
+
+```go
+func (ht Time) String() string
+```
+
+String returns the string representation of types.Time.
+
+<a name="Time.Time"></a>
+### func \(Time\) Time
+
+```go
+func (ht Time) Time() time.Time
+```
+
+Time converts types.Time back to the standard time.Time.
+
+<a name="Time.UnmarshalJSON"></a>
+### func \(\*Time\) UnmarshalJSON
+
+```go
+func (ht *Time) UnmarshalJSON(b []byte) error
+```
+
+UnmarshalJSON customizes unmarshaling for Time to parse the Hive datetime format.
+
 <a name="TransactionInBlock"></a>
 ## type TransactionInBlock
 
@@ -1679,10 +2083,25 @@ TransactionInBlock represents a transaction inside a block.
 type TransactionInBlock struct {
     RefBlockNum    uint16           `json:"ref_block_num"`
     RefBlockPrefix uint32           `json:"ref_block_prefix"`
-    Expiration     string           `json:"expiration"`
+    Expiration     Time             `json:"expiration"`
     Operations     []OperationTuple `json:"operations"`
     Extensions     []any            `json:"extensions"`
     Signatures     []string         `json:"signatures"`
+}
+```
+
+<a name="VestingDelegation"></a>
+## type VestingDelegation
+
+VestingDelegation represents a vesting delegation on the Hive blockchain.
+
+```go
+type VestingDelegation struct {
+    ID                uint64 `json:"id"`
+    Delegator         string `json:"delegator"`
+    Delegatee         string `json:"delegatee"`
+    VestingShares     string `json:"vesting_shares"`
+    MinDelegationTime Time   `json:"min_delegation_time"`
 }
 ```
 
@@ -1761,6 +2180,26 @@ func (w *Wallet) Sign(tx *transaction.Transaction, account, role string) error
 
 Sign the transaction using the specified account's role key.
 
+# advanced\-api
+
+```go
+import "github.com/thecrazygm/anther/examples/advanced-api"
+```
+
+## Index
+
+
+
+# block\-range
+
+```go
+import "github.com/thecrazygm/anther/examples/block-range"
+```
+
+## Index
+
+
+
 # comment\-feed
 
 ```go
@@ -1795,6 +2234,16 @@ import "github.com/thecrazygm/anther/examples/send"
 
 ```go
 import "github.com/thecrazygm/anther/examples/transfer"
+```
+
+## Index
+
+
+
+# verify\-keys
+
+```go
+import "github.com/thecrazygm/anther/examples/verify-keys"
 ```
 
 ## Index

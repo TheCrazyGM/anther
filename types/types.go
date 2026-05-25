@@ -165,8 +165,37 @@ type DynamicGlobalProperties struct {
 
 // Manabar represents a player's voting or RC mana bar.
 type Manabar struct {
-	CurrentMana    float64 `json:"current_mana,string"`
+	CurrentMana    float64 `json:"current_mana"`
 	LastUpdateTime int64   `json:"last_update_time"`
+}
+
+// UnmarshalJSON customizes unmarshaling for Manabar to support both string and numeric current_mana.
+func (m *Manabar) UnmarshalJSON(data []byte) error {
+	type Alias Manabar
+	aux := &struct {
+		CurrentMana any `json:"current_mana"`
+		*Alias
+	}{
+		Alias: (*Alias)(m),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	if aux.CurrentMana != nil {
+		switch v := aux.CurrentMana.(type) {
+		case float64:
+			m.CurrentMana = v
+		case string:
+			var f float64
+			if _, err := fmt.Sscanf(v, "%f", &f); err != nil {
+				return fmt.Errorf("invalid current_mana string: %w", err)
+			}
+			m.CurrentMana = f
+		default:
+			return fmt.Errorf("unexpected type for current_mana: %T", v)
+		}
+	}
+	return nil
 }
 
 // AccountData represents Hive account query results.
