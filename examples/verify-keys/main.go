@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/thecrazygm/anther/client"
-	"github.com/thecrazygm/anther/crypto"
+	"github.com/srbde/anther/client"
+	"github.com/srbde/anther/crypto"
 )
 
 func main() {

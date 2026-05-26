@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thecrazygm/anther/client"
+	"github.com/srbde/anther/client"
 )
 
 func main() {

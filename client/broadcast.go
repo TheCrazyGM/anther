@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/thecrazygm/anther/transaction"
+	"github.com/srbde/anther/transaction"
 )
 
 // BroadcastVote creates, signs, and broadcasts a vote transaction.

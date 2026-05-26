@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/thecrazygm/anther/client"
-	"github.com/thecrazygm/anther/transaction"
+	"github.com/srbde/anther/client"
+	"github.com/srbde/anther/transaction"
 )
 
 func main() {

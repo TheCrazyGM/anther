@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/thecrazygm/anther/types"
+	"github.com/srbde/anther/types"
 )
 
 // GetRCParams fetches the Resource Credit resource parameters.

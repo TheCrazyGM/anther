@@ -175,10 +175,10 @@ The `Transfer` type in `transaction/transaction.go`:
 package main
 
 import (
-    "github.com/thecrazygm/anther/client"
-    "github.com/thecrazygm/anther/transaction"
-    "github.com/thecrazygm/anther/types"
-    "github.com/thecrazygm/anther/wallet"
+    "github.com/srbde/anther/client"
+    "github.com/srbde/anther/transaction"
+    "github.com/srbde/anther/types"
+    "github.com/srbde/anther/wallet"
 )
 
 func main() {

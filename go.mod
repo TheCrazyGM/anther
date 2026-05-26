@@ -1,4 +1,4 @@
-module github.com/thecrazygm/anther
+module github.com/srbde/anther
 
 go 1.26.3
 

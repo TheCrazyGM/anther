@@ -6,8 +6,8 @@ This document outlines the strategic roadmap for bringing **`anther`** to a feat
 
 ## ✅ Phase 1: Rebranding & Identity (COMPLETED)
 
-- [x] **Module Renaming**: Updated `go.mod` path from `github.com/thecrazygm/nectar-go` to `github.com/thecrazygm/anther`.
-- [x] **Global Search & Replace**: Migrated all imports of `github.com/thecrazygm/nectar-go` to `github.com/thecrazygm/anther`.
+- [x] **Module Renaming**: Updated `go.mod` path from `github.com/thecrazygm/nectar-go` to `github.com/srbde/anther`.
+- [x] **Global Search & Replace**: Migrated all imports of `github.com/thecrazygm/nectar-go` to `github.com/srbde/anther`.
 - [x] **README & License Modernization**: Aligned documentation with the plant theme and updated references.
 
 ## ✅ Phase 2: Tooling & Package Hygiene (COMPLETED)

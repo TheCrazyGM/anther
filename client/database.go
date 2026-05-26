@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/thecrazygm/anther/types"
+	"github.com/srbde/anther/types"
 )
 
 // GetConfig returns the node's configuration map.

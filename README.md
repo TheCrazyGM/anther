@@ -51,7 +51,7 @@ Anther is the Go counterpart to **[Pollen](https://github.com/srbde/pollen)** (T
 Requires Go >= 1.20.
 
 ```bash
-go get github.com/thecrazygm/anther
+go get github.com/srbde/anther
 ```
 
 ### Read account data (Go)
@@ -63,8 +63,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/thecrazygm/anther/account"
-	"github.com/thecrazygm/anther/client"
+	"github.com/srbde/anther/account"
+	"github.com/srbde/anther/client"
 )
 
 func main() {
@@ -93,8 +93,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/thecrazygm/anther/client"
-	"github.com/thecrazygm/anther/transaction"
+	"github.com/srbde/anther/client"
+	"github.com/srbde/anther/transaction"
 )
 
 func main() {
@@ -135,7 +135,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/thecrazygm/anther/client"
+	"github.com/srbde/anther/client"
 )
 
 func main() {

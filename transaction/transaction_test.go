@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/thecrazygm/anther/crypto"
+	"github.com/srbde/anther/crypto"
 )
 
 type mockRPCClient struct {

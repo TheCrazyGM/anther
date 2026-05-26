@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/thecrazygm/anther/client"
-	"github.com/thecrazygm/anther/haf"
+	"github.com/srbde/anther/client"
+	"github.com/srbde/anther/haf"
 )
 
 func TestRefresh(t *testing.T) {

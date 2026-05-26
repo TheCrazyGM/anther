@@ -293,7 +293,7 @@ nectar-go/
 
 ## What's Next for Users
 
-1. **Integrate**: Add to your Go projects with `import "github.com/thecrazygm/anther"`
+1. **Integrate**: Add to your Go projects with `import "github.com/srbde/anther"`
 2. **Extend**: Add more operation types if needed
 3. **Deploy**: Use in production HIVE applications
 4. **Contribute**: Report issues or suggest improvements

@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutil "github.com/thecrazygm/anther/crypto"
-	"github.com/thecrazygm/anther/types"
+	cryptoutil "github.com/srbde/anther/crypto"
+	"github.com/srbde/anther/types"
 )
 
 // RPCClient defines the client behaviors required by Transaction operations.
