@@ -1,6 +1,6 @@
 # 🌿 Anther
 
-**The modern, secure, and production-ready Go SDK for the Hive blockchain. Built for 2026 and beyond.**
+**The modern, secure, and production-ready Go SDK for the Hive blockchain. Built for production. Made to last.**
 
 Go is built for high-performance concurrency, network resilience, and robust system-level tooling. **Anther** brings those strengths to the Hive blockchain. It is designed from the ground up to provide secure, offline transaction serialization and signing, multi-signature authority validation, and native goroutine/channel-based blockchain streaming.
 
