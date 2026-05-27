@@ -372,3 +372,59 @@ func TestGetBlockRange(t *testing.T) {
 		t.Fatalf("expected error for count > 1000, got: %v", err)
 	}
 }
+
+func TestClientFailoverHttpStatusAndJsonRpcCode(t *testing.T) {
+	var callCount1, callCount2 int
+
+	// Server 1 returns 502 Bad Gateway
+	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount1++
+		w.WriteHeader(http.StatusBadGateway)
+		_, _ = w.Write([]byte("502 Bad Gateway"))
+	}))
+	defer server1.Close()
+
+	// Server 2 returns JSON-RPC -32603 Internal Error first time, succeeds second time
+	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount2++
+		if callCount2 == 1 {
+			response := map[string]any{
+				"jsonrpc": "2.0",
+				"id":      1,
+				"error": map[string]any{
+					"code":    -32603,
+					"message": "Internal error",
+				},
+			}
+			_ = json.NewEncoder(w).Encode(response)
+			return
+		}
+
+		response := map[string]any{
+			"jsonrpc": "2.0",
+			"id":      1,
+			"result":  "success",
+		}
+		_ = json.NewEncoder(w).Encode(response)
+	}))
+	defer server2.Close()
+
+	c := NewClient([]string{server1.URL, server2.URL}, 30)
+
+	res, err := c.Call("test", "method", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if res != "success" {
+		t.Fatalf("expected result 'success', got %v", res)
+	}
+
+	if callCount1 != 2 {
+		t.Fatalf("expected 2 calls to server1, got %d", callCount1)
+	}
+
+	if callCount2 != 2 {
+		t.Fatalf("expected 2 calls to server2, got %d", callCount2)
+	}
+}

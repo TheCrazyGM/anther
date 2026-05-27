@@ -128,6 +128,10 @@ func (c *Client) Call(api string, method string, params any) (any, error) {
 				}
 				defer resp.Body.Close()
 
+				if resp.StatusCode != http.StatusOK {
+					return fmt.Errorf("HTTP status %d", resp.StatusCode)
+				}
+
 				body, err := io.ReadAll(resp.Body)
 				if err != nil {
 					return err
@@ -146,6 +150,29 @@ func (c *Client) Call(api string, method string, params any) (any, error) {
 
 			if errMsg, ok := result["error"]; ok {
 				if errMap, ok := errMsg.(map[string]any); ok {
+					codeVal, hasCode := errMap["code"]
+					var rpcCode int64
+					if hasCode {
+						switch cv := codeVal.(type) {
+						case float64:
+							rpcCode = int64(cv)
+						case int64:
+							rpcCode = cv
+						case int:
+							rpcCode = int64(cv)
+						}
+					}
+
+					// If it is a node-level error (Method not found or Internal error), failover!
+					if hasCode && (rpcCode == -32601 || rpcCode == -32603) {
+						if enableLogging {
+							logDebug("node %s returned RPC error code %d; failing over", nodeURL, rpcCode)
+						}
+						lastErr = fmt.Errorf("node returned JSON-RPC error code %d", rpcCode)
+						c.RotateNode()
+						continue
+					}
+
 					if msg, ok := errMap["message"].(string); ok {
 						return nil, errors.New(msg)
 					}
