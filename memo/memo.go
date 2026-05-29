@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/srbde/anther/crypto"
+	"github.com/srbde/hive-anther/crypto"
 )
 
 // pkcs7Pad appends PKCS#7 padding to data.

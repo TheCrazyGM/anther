@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/srbde/anther/client"
-	"github.com/srbde/anther/haf"
-	"github.com/srbde/anther/transaction"
+	"github.com/srbde/hive-anther/client"
+	"github.com/srbde/hive-anther/haf"
+	"github.com/srbde/hive-anther/transaction"
 )
 
 const (

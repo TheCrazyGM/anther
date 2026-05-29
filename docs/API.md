@@ -3,7 +3,7 @@
 # anther
 
 ```go
-import "github.com/srbde/anther"
+import "github.com/srbde/hive-anther"
 ```
 
 ## Index
@@ -13,7 +13,7 @@ import "github.com/srbde/anther"
 # account
 
 ```go
-import "github.com/srbde/anther/account"
+import "github.com/srbde/hive-anther/account"
 ```
 
 Package account manages Hive account profiles, reputations, voting power, Resource Credit details, and helper functions to build account operations.
@@ -212,7 +212,7 @@ VotingPower returns the current voting power percentage.
 # client
 
 ```go
-import "github.com/srbde/anther/client"
+import "github.com/srbde/hive-anther/client"
 ```
 
 Package client provides a JSON\-RPC client to interact with Hive blockchain nodes, supporting node failover, automatic retries with exponential backoff, and live block and operation streaming.
@@ -608,7 +608,7 @@ const (
 # crypto
 
 ```go
-import "github.com/srbde/anther/crypto"
+import "github.com/srbde/hive-anther/crypto"
 ```
 
 ## Index
@@ -717,7 +717,7 @@ WIFToPublicKey derives the Hive\-formatted public key \("STM..."\) from a privat
 # exceptions
 
 ```go
-import "github.com/srbde/anther/exceptions"
+import "github.com/srbde/hive-anther/exceptions"
 ```
 
 ## Index
@@ -882,7 +882,7 @@ NewTransactionError creates a new TransactionError.
 # haf
 
 ```go
-import "github.com/srbde/anther/haf"
+import "github.com/srbde/hive-anther/haf"
 ```
 
 ## Index
@@ -957,7 +957,7 @@ type ReputationResult struct {
 # memo
 
 ```go
-import "github.com/srbde/anther/memo"
+import "github.com/srbde/hive-anther/memo"
 ```
 
 Package memo provides support for private message \(memo\) encryption and decryption using ECIES \(Elliptic Curve Integrated Encryption Scheme\) on the secp256k1 curve.
@@ -989,7 +989,7 @@ Encode encrypts a memo if it starts with "\#".
 # transaction
 
 ```go
-import "github.com/srbde/anther/transaction"
+import "github.com/srbde/hive-anther/transaction"
 ```
 
 Package transaction handles constructing, encoding, signing, verifying, and broadcasting Hive blockchain transactions.
@@ -1740,7 +1740,7 @@ func (wv *WithdrawVesting) ToDict() (string, map[string]any)
 # types
 
 ```go
-import "github.com/srbde/anther/types"
+import "github.com/srbde/hive-anther/types"
 ```
 
 Package types defines the core structures and types used across the Anther library for Hive blockchain data models and serialization.
@@ -2108,7 +2108,7 @@ type VestingDelegation struct {
 # wallet
 
 ```go
-import "github.com/srbde/anther/wallet"
+import "github.com/srbde/hive-anther/wallet"
 ```
 
 Package wallet provides a simple in\-memory key wallet to manage private keys for accounts and sign blockchain transactions locally.
@@ -2183,7 +2183,7 @@ Sign the transaction using the specified account's role key.
 # advanced\-api
 
 ```go
-import "github.com/srbde/anther/examples/advanced-api"
+import "github.com/srbde/hive-anther/examples/advanced-api"
 ```
 
 ## Index
@@ -2193,7 +2193,7 @@ import "github.com/srbde/anther/examples/advanced-api"
 # block\-range
 
 ```go
-import "github.com/srbde/anther/examples/block-range"
+import "github.com/srbde/hive-anther/examples/block-range"
 ```
 
 ## Index
@@ -2203,7 +2203,7 @@ import "github.com/srbde/anther/examples/block-range"
 # comment\-feed
 
 ```go
-import "github.com/srbde/anther/examples/comment-feed"
+import "github.com/srbde/hive-anther/examples/comment-feed"
 ```
 
 ## Index
@@ -2213,7 +2213,7 @@ import "github.com/srbde/anther/examples/comment-feed"
 # memo\-demo
 
 ```go
-import "github.com/srbde/anther/examples/memo-demo"
+import "github.com/srbde/hive-anther/examples/memo-demo"
 ```
 
 ## Index
@@ -2223,7 +2223,7 @@ import "github.com/srbde/anther/examples/memo-demo"
 # send
 
 ```go
-import "github.com/srbde/anther/examples/send"
+import "github.com/srbde/hive-anther/examples/send"
 ```
 
 ## Index
@@ -2233,7 +2233,7 @@ import "github.com/srbde/anther/examples/send"
 # transfer
 
 ```go
-import "github.com/srbde/anther/examples/transfer"
+import "github.com/srbde/hive-anther/examples/transfer"
 ```
 
 ## Index
@@ -2243,7 +2243,7 @@ import "github.com/srbde/anther/examples/transfer"
 # verify\-keys
 
 ```go
-import "github.com/srbde/anther/examples/verify-keys"
+import "github.com/srbde/hive-anther/examples/verify-keys"
 ```
 
 ## Index
@@ -2253,7 +2253,7 @@ import "github.com/srbde/anther/examples/verify-keys"
 # vote\-bot
 
 ```go
-import "github.com/srbde/anther/examples/vote-bot"
+import "github.com/srbde/hive-anther/examples/vote-bot"
 ```
 
 ## Index

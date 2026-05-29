@@ -7,11 +7,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/srbde/anther/account"
-	"github.com/srbde/anther/client"
-	"github.com/srbde/anther/crypto"
-	"github.com/srbde/anther/memo"
-	"github.com/srbde/anther/transaction"
+	"github.com/srbde/hive-anther/account"
+	"github.com/srbde/hive-anther/client"
+	"github.com/srbde/hive-anther/crypto"
+	"github.com/srbde/hive-anther/memo"
+	"github.com/srbde/hive-anther/transaction"
 )
 
 func main() {

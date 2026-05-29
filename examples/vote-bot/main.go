@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/srbde/anther/client"
-	"github.com/srbde/anther/transaction"
+	"github.com/srbde/hive-anther/client"
+	"github.com/srbde/hive-anther/transaction"
 )
 
 func main() {

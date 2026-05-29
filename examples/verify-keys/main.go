@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/srbde/anther/client"
-	"github.com/srbde/anther/crypto"
+	"github.com/srbde/hive-anther/client"
+	"github.com/srbde/hive-anther/crypto"
 )
 
 func main() {

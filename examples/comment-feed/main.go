@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/srbde/anther/client"
+	"github.com/srbde/hive-anther/client"
 )
 
 func main() {

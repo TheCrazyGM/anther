@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/srbde/anther/types"
+	"github.com/srbde/hive-anther/types"
 )
 
 // GetRCParams fetches the Resource Credit resource parameters.

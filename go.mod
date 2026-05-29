@@ -1,4 +1,4 @@
-module github.com/srbde/anther
+module github.com/srbde/hive-anther
 
 go 1.26.3
 

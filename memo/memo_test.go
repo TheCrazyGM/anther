@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/srbde/anther/crypto"
+	"github.com/srbde/hive-anther/crypto"
 )
 
 // generateWIFForTest creates a new WIF key for testing.

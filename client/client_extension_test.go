@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/srbde/anther/crypto"
+	"github.com/srbde/hive-anther/crypto"
 )
 
 // Helper to generate a test WIF key

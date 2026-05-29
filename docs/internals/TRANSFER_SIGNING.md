@@ -12,10 +12,10 @@ The Anther Go library supports creating and signing transfer transactions on the
 package main
 
 import (
-    "github.com/srbde/anther/account"
-    "github.com/srbde/anther/client"
-    "github.com/srbde/anther/transaction"
-    "github.com/srbde/anther/wallet"
+    "github.com/srbde/hive-anther/account"
+    "github.com/srbde/hive-anther/client"
+    "github.com/srbde/hive-anther/transaction"
+    "github.com/srbde/hive-anther/wallet"
 )
 
 func main() {

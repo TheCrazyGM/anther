@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/srbde/anther/crypto"
-	"github.com/srbde/anther/exceptions"
-	"github.com/srbde/anther/transaction"
+	"github.com/srbde/hive-anther/crypto"
+	"github.com/srbde/hive-anther/exceptions"
+	"github.com/srbde/hive-anther/transaction"
 )
 
 // Wallet is a simple in-memory wallet for managing Hive private keys.

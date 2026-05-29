@@ -113,8 +113,8 @@ Result: <transaction_response>
 package main
 
 import (
-    "github.com/srbde/anther/account"
-    "github.com/srbde/anther/client"
+    "github.com/srbde/hive-anther/account"
+    "github.com/srbde/hive-anther/client"
 )
 
 func main() {
@@ -144,9 +144,9 @@ func main() {
 package main
 
 import (
-    "github.com/srbde/anther/transaction"
-    "github.com/srbde/anther/wallet"
-    "github.com/srbde/anther/client"
+    "github.com/srbde/hive-anther/transaction"
+    "github.com/srbde/hive-anther/wallet"
+    "github.com/srbde/hive-anther/client"
 )
 
 func main() {
@@ -181,9 +181,9 @@ func main() {
 package main
 
 import (
-    "github.com/srbde/anther/transaction"
-    "github.com/srbde/anther/wallet"
-    "github.com/srbde/anther/client"
+    "github.com/srbde/hive-anther/transaction"
+    "github.com/srbde/hive-anther/wallet"
+    "github.com/srbde/hive-anther/client"
 )
 
 func main() {
@@ -215,9 +215,9 @@ func main() {
 package main
 
 import (
-    "github.com/srbde/anther/account"
-    "github.com/srbde/anther/wallet"
-    "github.com/srbde/anther/client"
+    "github.com/srbde/hive-anther/account"
+    "github.com/srbde/hive-anther/wallet"
+    "github.com/srbde/hive-anther/client"
 )
 
 func main() {
@@ -252,7 +252,7 @@ export ACTIVE_WIF="5Kxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 The library provides custom exception types:
 
 ```go
-import "github.com/srbde/anther/exceptions"
+import "github.com/srbde/hive-anther/exceptions"
 
 // Transaction errors
 err := tx.Sign(wif)

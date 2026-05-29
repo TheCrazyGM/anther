@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/srbde/anther/types"
+	"github.com/srbde/hive-anther/types"
 )
 
 // GetConfig returns the node's configuration map.

@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/srbde/anther/transaction"
+	"github.com/srbde/hive-anther/transaction"
 )
 
 // BroadcastVote creates, signs, and broadcasts a vote transaction.

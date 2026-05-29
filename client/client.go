@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/srbde/anther/types"
+	"github.com/srbde/hive-anther/types"
 )
 
 // Client is a JSON-RPC client for interacting with Hive nodes.

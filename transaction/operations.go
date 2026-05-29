@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/srbde/anther/crypto"
-	"github.com/srbde/anther/types"
+	"github.com/srbde/hive-anther/crypto"
+	"github.com/srbde/hive-anther/types"
 )
 
 // Authority represents a cryptographic voting or transaction threshold authority.
